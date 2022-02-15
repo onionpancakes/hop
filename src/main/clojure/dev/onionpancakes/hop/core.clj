@@ -1,7 +1,11 @@
 (ns dev.onionpancakes.hop.core
-  (:import [java.net.http
+  (:import [java.nio.file Path]
+           [java.net URI]
+           [java.net.http
             HttpClient HttpClient$Redirect HttpClient$Version HttpClient$Builder
-            ]))
+            HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers]))
+
+;; Client
 
 (def follow-redirects-keys
   {:always HttpClient$Redirect/ALWAYS
@@ -39,3 +43,41 @@
      sslp (.sslParameters sslp)
      hver (.version (http-version-keys hver hver))
      true (.build))))
+
+;; Request
+
+(defprotocol IRequestBody
+  (body-publisher [this]))
+
+(extend-protocol IRequestBody
+  (Class/forName "[B")
+  (body-publisher [this]
+    (HttpRequest$BodyPublishers/ofByteArray this))
+  String
+  (body-publisher [this]
+    (HttpRequest$BodyPublishers/ofString this))
+  nil
+  (body-publisher [_]
+    (HttpRequest$BodyPublishers/noBody))
+  Path
+  (body-publisher [this]
+    (HttpRequest$BodyPublishers/ofFile this))
+  HttpRequest$BodyPublisher
+  (body-publisher [this] this))
+
+(defn set-request-headers
+  [builder headers]
+  (doseq [[k values] headers
+          :let       [header (name k)]
+          value      values]
+    (.setHeader builder header values))
+  builder)
+
+(defn http-request
+  [{method  :method
+    body    :body
+    headers :headers}]
+  (cond-> (HttpRequest/newBuilder)
+    true    (.method (name method) (body-publisher body))
+    headers (set-request-headers headers)
+    true    (.build)))
