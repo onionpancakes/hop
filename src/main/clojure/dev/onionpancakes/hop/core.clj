@@ -1,11 +1,12 @@
 (ns dev.onionpancakes.hop.core
   (:refer-clojure :exclude [send])
+  (:require [clojure.string :refer [upper-case]])
   (:import [java.nio.file Path]
            [java.net URI]
            [java.net.http
             HttpClient HttpClient$Redirect HttpClient$Version HttpClient$Builder
             HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers
-            HttpResponse HttpResponse$BodyHandlers]))
+            HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers]))
 
 ;; Client
 
@@ -23,28 +24,28 @@
 
 (defn client
   ([] (client nil))
-  ([{auth :authenticator
-     tout :connect-timeout
-     chdr :cookie-handler
-     exec :executor
-     rdir :follow-redirects
-     prty :priority
-     prox :proxy-selector
-     sslc :ssl-context
-     sslp :ssl-parameters
-     hver :version}]
+  ([{:keys [authenticator
+            connect-timeout
+            cookie-handler
+            executor
+            follow-redirects
+            priority
+            proxy-selector
+            ssl-context
+            ssl-parameters
+            version]}]
    (cond-> (HttpClient/newBuilder)
-     auth (.authenticator auth)
-     tout (.connectTimeout tout)
-     chdr (.cookieHandler chdr)
-     exec (.executor exec)
-     rdir (.followRedirects (follow-redirects-alias rdir rdir))
-     prty (.priority prty)
-     prox (.proxy (proxy-selector-alias prox prox))
-     sslc (.sslContext sslc)
-     sslp (.sslParameters sslp)
-     hver (.version (http-version-alias hver hver))
-     true (.build))))
+     authenticator    (.authenticator authenticator)
+     connect-timeout  (.connectTimeout connect-timeout)
+     cookie-handler   (.cookieHandler cookie-handler)
+     executor         (.executor executor)
+     follow-redirects (.followRedirects (follow-redirects-alias follow-redirects follow-redirects))
+     priority         (.priority priority)
+     proxy-selector   (.proxy (proxy-selector-alias proxy-selector proxy-selector))
+     ssl-context      (.sslContext ssl-context)
+     ssl-parameters   (.sslParameters ssl-parameters)
+     version          (.version (http-version-alias version version))
+     true             (.build))))
 
 ;; Request
 
@@ -76,36 +77,40 @@
   builder)
 
 (defn http-request
-  [{method  :method
-    body    :body
-    headers :headers}]
+  [{:keys [method body headers]}]
   (cond-> (HttpRequest/newBuilder)
-    true    (.method (name method) (body-publisher body))
+    true    (.method (upper-case (name method)) (body-publisher body))
     headers (set-request-headers headers)
     true    (.build)))
 
 ;; Response
 
 (defprotocol IResponseBodyHandler
-  (body-handler [this]))
+  (body-handler* [this]))
 
 (extend-protocol IResponseBodyHandler
   clojure.lang.Keyword
-  (body-handler [this]
+  (body-handler* [this]
     (case this
       :byte-array   (HttpResponse$BodyHandlers/ofByteArray)
       :discarding   (HttpResponse$BodyHandlers/discarding)
       :input-stream (HttpResponse$BodyHandlers/ofInputStream)
-      :string       (HttpResponse$BodyHandlers/ofString))))
+      :string       (HttpResponse$BodyHandlers/ofString)))
+  HttpResponse$BodyHandler
+  (body-handler* [this] this))
+
+(defn response-map
+  [resp]
+  {})
 
 ;; Send
 
 (def default-client
-  (delay (client {})))
+  (delay (client {:follow-redirects :normal})))
 
 (defn send
-  ([req {client   :client
-         bhandler :body-handler
-         :or      {bhdr :byte-array}}]
+  ([req] (send @default-client req))
+  ([client {:keys [body-handler] :or {body-handler :byte-array} :as req}]
    (-> (or client @default-client)
-       (.send (http-request req) (body-handler bhandler)))))
+       (.send (http-request req) (body-handler* body-handler))
+       (response-map))))
