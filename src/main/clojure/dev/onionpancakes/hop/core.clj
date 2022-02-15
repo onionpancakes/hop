@@ -1,9 +1,11 @@
 (ns dev.onionpancakes.hop.core
+  (:refer-clojure :exclude [send])
   (:import [java.nio.file Path]
            [java.net URI]
            [java.net.http
             HttpClient HttpClient$Redirect HttpClient$Version HttpClient$Builder
-            HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers]))
+            HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers
+            HttpResponse HttpResponse$BodyHandlers]))
 
 ;; Client
 
@@ -81,3 +83,29 @@
     true    (.method (name method) (body-publisher body))
     headers (set-request-headers headers)
     true    (.build)))
+
+;; Response
+
+(defprotocol IResponseBodyHandler
+  (body-handler [this]))
+
+(extend-protocol IResponseBodyHandler
+  clojure.lang.Keyword
+  (body-handler [this]
+    (case this
+      :byte-array   (HttpResponse$BodyHandlers/ofByteArray)
+      :discarding   (HttpResponse$BodyHandlers/discarding)
+      :input-stream (HttpResponse$BodyHandlers/ofInputStream)
+      :string       (HttpResponse$BodyHandlers/ofString))))
+
+;; Send
+
+(def default-client
+  (delay (client {})))
+
+(defn send
+  ([req {client   :client
+         bhandler :body-handler
+         :or      {bhdr :byte-array}}]
+   (-> (or client @default-client)
+       (.send (http-request req) (body-handler bhandler)))))
