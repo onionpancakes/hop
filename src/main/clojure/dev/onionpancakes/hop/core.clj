@@ -7,16 +7,16 @@
 
 ;; Client
 
-(def follow-redirects-keys
+(def follow-redirects-alias
   {:always HttpClient$Redirect/ALWAYS
    :never  HttpClient$Redirect/NEVER
    :normal HttpClient$Redirect/NORMAL})
 
-(def http-version-keys
+(def http-version-alias
   {:http1.1 HttpClient$Version/HTTP_1_1
    :http2   HttpClient$Version/HTTP_2})
 
-(def proxy-selector-keys
+(def proxy-selector-alias
   {:no-proxy HttpClient$Builder/NO_PROXY})
 
 (defn client
@@ -36,12 +36,12 @@
      tout (.connectTimeout tout)
      chdr (.cookieHandler chdr)
      exec (.executor exec)
-     rdir (.followRedirects (follow-redirects-keys rdir rdir))
+     rdir (.followRedirects (follow-redirects-alias rdir rdir))
      prty (.priority prty)
-     prox (.proxy (proxy-selector-keys prox prox))
+     prox (.proxy (proxy-selector-alias prox prox))
      sslc (.sslContext sslc)
      sslp (.sslParameters sslp)
-     hver (.version (http-version-keys hver hver))
+     hver (.version (http-version-alias hver hver))
      true (.build))))
 
 ;; Request
