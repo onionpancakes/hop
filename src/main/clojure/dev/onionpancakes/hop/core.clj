@@ -56,10 +56,10 @@
   String
   (to-uri [this] (URI. this)))
 
-(defprotocol IRequestBody
+(defprotocol IRequestBodyPublisher
   (to-body-publisher [this]))
 
-(extend-protocol IRequestBody
+(extend-protocol IRequestBodyPublisher
   (Class/forName "[B")
   (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofByteArray this))
