@@ -49,6 +49,13 @@
 
 ;; Request
 
+(defprotocol IRequestUri
+  (to-uri [this]))
+
+(extend-protocol IRequestUri
+  String
+  (to-uri [this] (URI. this)))
+
 (defprotocol IRequestBody
   (body-publisher [this]))
 
@@ -73,13 +80,14 @@
   (doseq [[k values] headers
           :let       [header (name k)]
           value      values]
-    (.setHeader builder header values))
+    (.setHeader builder header value))
   builder)
 
 (defn http-request
-  [{:keys [method body headers]}]
+  [{:keys [uri method body headers]}]
   (cond-> (HttpRequest/newBuilder)
-    true    (.method (upper-case (name method)) (body-publisher body))
+    uri     (.uri (to-uri uri))
+    method  (.method (upper-case (name method)) (body-publisher body))
     headers (set-request-headers headers)
     true    (.build)))
 
@@ -101,7 +109,9 @@
 
 (defn response-map
   [resp]
-  {})
+  {:status  (.statusCode resp)
+   :headers (into {} (map (juxt key (comp vec val))) (.map (.headers resp)))
+   :body    (.body resp)})
 
 ;; Send
 
