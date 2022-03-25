@@ -109,8 +109,8 @@
   (delay (client {:follow-redirects :normal})))
 
 (defn send
-  ([req] (send @default-client req))
-  ([client {:keys [body-handler] :or {body-handler :byte-array} :as req}]
-   (-> (or client @default-client)
-       (.send (http-request req) (body-handler* body-handler))
+  ([req] (send req nil))
+  ([req opts]
+   (-> (or (:client opts) @default-client)
+       (.send (http-request req) (body-handler* (:body-handler req :byte-array)))
        (response-map))))
