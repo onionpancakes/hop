@@ -10,16 +10,16 @@
 
 ;; Client
 
-(def follow-redirects-alias
+(def to-follow-redirects
   {:always HttpClient$Redirect/ALWAYS
    :never  HttpClient$Redirect/NEVER
    :normal HttpClient$Redirect/NORMAL})
 
-(def http-version-alias
+(def to-http-version
   {:http1.1 HttpClient$Version/HTTP_1_1
    :http2   HttpClient$Version/HTTP_2})
 
-(def proxy-selector-alias
+(def to-proxy-selector
   {:no-proxy HttpClient$Builder/NO_PROXY})
 
 (defn client
@@ -39,12 +39,12 @@
      connect-timeout  (.connectTimeout connect-timeout)
      cookie-handler   (.cookieHandler cookie-handler)
      executor         (.executor executor)
-     follow-redirects (.followRedirects (follow-redirects-alias follow-redirects follow-redirects))
+     follow-redirects (.followRedirects (to-follow-redirects follow-redirects follow-redirects))
      priority         (.priority priority)
-     proxy-selector   (.proxy (proxy-selector-alias proxy-selector proxy-selector))
+     proxy-selector   (.proxy (to-proxy-selector proxy-selector proxy-selector))
      ssl-context      (.sslContext ssl-context)
      ssl-parameters   (.sslParameters ssl-parameters)
-     version          (.version (http-version-alias version version))
+     version          (.version (to-http-version version version))
      true             (.build))))
 
 ;; Request
@@ -57,23 +57,23 @@
   (to-uri [this] (URI. this)))
 
 (defprotocol IRequestBody
-  (body-publisher [this]))
+  (to-body-publisher [this]))
 
 (extend-protocol IRequestBody
   (Class/forName "[B")
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofByteArray this))
   String
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofString this))
   nil
-  (body-publisher [_]
+  (to-body-publisher [_]
     (HttpRequest$BodyPublishers/noBody))
   Path
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofFile this))
   HttpRequest$BodyPublisher
-  (body-publisher [this] this))
+  (to-body-publisher [this] this))
 
 (defn set-request-headers
   [builder headers]
@@ -87,25 +87,25 @@
   [{:keys [uri method body headers]}]
   (cond-> (HttpRequest/newBuilder)
     uri     (.uri (to-uri uri))
-    method  (.method (upper-case (name method)) (body-publisher body))
+    method  (.method (upper-case (name method)) (to-body-publisher body))
     headers (set-request-headers headers)
     true    (.build)))
 
 ;; Response
 
 (defprotocol IResponseBodyHandler
-  (body-handler* [this]))
+  (to-body-handler [this]))
 
 (extend-protocol IResponseBodyHandler
   clojure.lang.Keyword
-  (body-handler* [this]
+  (to-body-handler [this]
     (case this
       :byte-array   (HttpResponse$BodyHandlers/ofByteArray)
       :discarding   (HttpResponse$BodyHandlers/discarding)
       :input-stream (HttpResponse$BodyHandlers/ofInputStream)
       :string       (HttpResponse$BodyHandlers/ofString)))
   HttpResponse$BodyHandler
-  (body-handler* [this] this))
+  (to-body-handler [this] this))
 
 (defn response-map
   [resp]
@@ -122,5 +122,5 @@
   ([req] (send req nil))
   ([req opts]
    (-> (or (:client opts) @default-client)
-       (.send (http-request req) (body-handler* (:body-handler req :byte-array)))
+       (.send (http-request req) (to-body-handler (:body-handler req :byte-array)))
        (response-map))))
