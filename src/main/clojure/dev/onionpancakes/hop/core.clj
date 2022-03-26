@@ -8,6 +8,7 @@
             HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers HttpRequest$Builder
             HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers
             HttpHeaders]
+           [java.util.concurrent CompletableFuture]
            [java.util.function Function]))
 
 ;; Client
@@ -164,7 +165,7 @@
   ([req opts]
    (send-with @default-client req opts)))
 
-(defn send-async-with
+(defn ^CompletableFuture send-async-with
   "Sends request with given client, returning the response in a CompletableFuture."
   ([client req] (send-async-with client req nil))
   ([^HttpClient client req {:keys [body-handler response-fn]
@@ -175,7 +176,7 @@
                                (apply [_ resp]
                                  (response-fn resp)))))))
 
-(defn send-async
+(defn ^CompletableFuture send-async
   "Sends request with default client, returning the response in a CompletableFuture."
   ([req] (send-async req nil))
   ([req opts]
