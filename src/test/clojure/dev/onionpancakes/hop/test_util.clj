@@ -32,5 +32,6 @@
   (is (= nil (u/parse-charset {:content-type ""})))
   (is (= nil (u/parse-charset {:content-type "charset="})))
   (is (= "utf-8" (u/parse-charset {:content-type "charset=utf-8"})))
-  (is (= "utf-8" (u/parse-charset {:content-type "text/html; charset=UTF-8"})))
-  (is (= "utf-8" (u/parse-charset {:content-type "text/html; charset  = utf-8"}))))
+  (is (= "utf-8" (u/parse-charset {:content-type "text/html; charset=utf-8"})))
+  (is (= "utf-8" (u/parse-charset {:content-type "text/html; charset  = utf-8"})))
+  (is (= "UTF-8" (u/parse-charset {:content-type "text/html; charset=UTF-8"}))))
