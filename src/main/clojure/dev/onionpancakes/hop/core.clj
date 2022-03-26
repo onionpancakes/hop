@@ -5,7 +5,7 @@
            [java.net URI]
            [java.net.http
             HttpClient HttpClient$Redirect HttpClient$Version HttpClient$Builder
-            HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers
+            HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers HttpRequest$Builder
             HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers]))
 
 ;; Client
@@ -22,7 +22,7 @@
 (def to-proxy-selector
   {:no-proxy HttpClient$Builder/NO_PROXY})
 
-(defn client
+(defn client ^HttpClient
   ([] (client nil))
   ([{:keys [authenticator
             connect-timeout
@@ -75,15 +75,15 @@
   HttpRequest$BodyPublisher
   (to-body-publisher [this] this))
 
-(defn set-request-headers
-  [builder headers]
+(defn set-request-headers ^HttpRequest$Builder
+  [^HttpRequest$Builder builder headers]
   (doseq [[k values] headers
           :let       [header (name k)]
           value      values]
     (.setHeader builder header value))
   builder)
 
-(defn http-request
+(defn http-request ^HttpRequest
   [{:keys [uri method body headers]}]
   (cond-> (HttpRequest/newBuilder)
     uri     (.uri (to-uri uri))
@@ -94,7 +94,7 @@
 ;; Response
 
 (defprotocol IResponseBodyHandler
-  (to-body-handler [this]))
+  (to-body-handler ^HttpResponse$BodyHandler [this]))
 
 (extend-protocol IResponseBodyHandler
   clojure.lang.Keyword
@@ -108,7 +108,7 @@
   (to-body-handler [this] this))
 
 (defn response-map
-  [resp]
+  [^HttpResponse resp]
   {:status  (.statusCode resp)
    :headers (into {} (map (juxt key (comp vec val))) (.map (.headers resp)))
    :body    (.body resp)})
@@ -121,6 +121,7 @@
 (defn send
   ([req] (send req nil))
   ([req opts]
-   (-> (or (:client opts) @default-client)
-       (.send (http-request req) (to-body-handler (:body-handler req :byte-array)))
-       (response-map))))
+   (let [^HttpClient client (or (:client opts) @default-client)
+         body-handler       (:body-handler opts :body-array)]
+     (-> (.send client (http-request req) (to-body-handler body-handler))
+         (response-map)))))
