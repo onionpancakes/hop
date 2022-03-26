@@ -6,7 +6,8 @@
            [java.net.http
             HttpClient HttpClient$Redirect HttpClient$Version HttpClient$Builder
             HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers HttpRequest$Builder
-            HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers]))
+            HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers]
+           [java.util.function Function]))
 
 ;; Client
 
@@ -124,9 +125,14 @@
 
 (defn response-map
   [^HttpResponse resp]
-  {:status  (.statusCode resp)
-   :headers (into {} response-map-header-xf (.map (.headers resp)))
-   :body    (.body resp)})
+  (let [headers (into {} response-map-header-xf (.map (.headers resp)))]
+    {:status           (.statusCode resp)
+     :headers          headers
+     :body             (.body resp)
+     :content-encoding (first (get headers "content-encoding"))
+     :content-type     (first (get headers "content-type"))
+     :content-length   (some-> (first (get headers "content-length"))
+                               (Integer/parseInt))}))
 
 ;; Send
 
@@ -135,12 +141,28 @@
 
 (defn send-with
   ([client req] (send-with client req nil))
-  ([^HttpClient client req {:keys [body-handler]
-                            :or   {body-handler :byte-array}}]
-   (-> (.send client (to-request req) (to-body-handler body-handler))
-       (response-map))))
+  ([^HttpClient client req {:keys [body-handler response-fn]
+                            :or   {body-handler :byte-array
+                                   response-fn  response-map}}]
+   (cond-> (.send client (to-request req) (to-body-handler body-handler))
+     response-fn (response-fn))))
 
 (defn send
   ([req] (send req nil))
   ([req opts]
    (send-with @default-client req opts)))
+
+(defn send-async-with
+  ([client req] (send-async-with client req nil))
+  ([^HttpClient client req {:keys [body-handler response-fn]
+                            :or   {body-handler :byte-array
+                                   response-fn  response-map}}]
+   (cond-> (.sendAsync client (to-request req) (to-body-handler body-handler))
+     response-fn (.thenApply (reify Function
+                               (apply [_ resp]
+                                 (response-fn resp)))))))
+
+(defn send-async
+  ([req] (send-async req nil))
+  ([req opts]
+   (send-async-with @default-client req opts)))
