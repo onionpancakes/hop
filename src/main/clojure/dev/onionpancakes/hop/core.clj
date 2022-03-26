@@ -121,13 +121,14 @@
 (def default-client
   (delay (client {:follow-redirects :normal})))
 
-(defn send*
-  [^HttpClient client req {:keys [body-handler]
-                           :or   {body-handler :byte-array}}]
-  (-> (.send client (http-request req) (to-body-handler body-handler))
-      (response-map)))
+(defn send-with
+  ([client req] (send-with client req nil))
+  ([^HttpClient client req {:keys [body-handler]
+                            :or   {body-handler :byte-array}}]
+   (-> (.send client (http-request req) (to-body-handler body-handler))
+       (response-map))))
 
 (defn send
   ([req] (send req nil))
-  ([req {:keys [client] :as opts}]
-   (send* (or client @default-client) req opts)))
+  ([req opts]
+   (send* @default-client req opts)))
