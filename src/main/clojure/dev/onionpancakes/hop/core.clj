@@ -107,10 +107,13 @@
   HttpResponse$BodyHandler
   (to-body-handler [this] this))
 
+(def response-map-header-xf
+  (map (juxt key (comp vec val))))
+
 (defn response-map
   [^HttpResponse resp]
   {:status  (.statusCode resp)
-   :headers (into {} (map (juxt key (comp vec val))) (.map (.headers resp)))
+   :headers (into {} response-map-header-xf (.map (.headers resp)))
    :body    (.body resp)})
 
 ;; Send
@@ -118,10 +121,13 @@
 (def default-client
   (delay (client {:follow-redirects :normal})))
 
+(defn send*
+  [^HttpClient client req {:keys [body-handler]
+                           :or   {body-handler :byte-array}}]
+  (-> (.send client (http-request req) (to-body-handler body-handler))
+      (response-map)))
+
 (defn send
   ([req] (send req nil))
-  ([req opts]
-   (let [^HttpClient client (or (:client opts) @default-client)
-         body-handler       (:body-handler opts :body-array)]
-     (-> (.send client (http-request req) (to-body-handler body-handler))
-         (response-map)))))
+  ([req {:keys [client] :as opts}]
+   (send* (or client @default-client) req opts)))
