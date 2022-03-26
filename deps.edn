@@ -3,4 +3,4 @@
 
  :aliases
  {:dev
-  {:extra-paths ["src/dev/clojure"]}}}
+  {:extra-paths ["src/dev/clojure" "src/test/clojure"]}}}
