@@ -6,7 +6,8 @@
            [java.net.http
             HttpClient HttpClient$Redirect HttpClient$Version HttpClient$Builder
             HttpRequest HttpRequest$BodyPublisher HttpRequest$BodyPublishers HttpRequest$Builder
-            HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers]
+            HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers
+            HttpHeaders]
            [java.util.function Function]))
 
 ;; Client
@@ -123,9 +124,13 @@
 (def response-map-header-xf
   (map (juxt key (comp vec val))))
 
+(defn response-map-headers
+  [^HttpHeaders headers]
+  (into {} response-map-header-xf (.map headers)))
+
 (defn response-map
   [^HttpResponse resp]
-  (let [headers (into {} response-map-header-xf (.map (.headers resp)))]
+  (let [headers (response-map-headers (.headers resp))]
     {:status           (.statusCode resp)
      :headers          headers
      :body             (.body resp)
