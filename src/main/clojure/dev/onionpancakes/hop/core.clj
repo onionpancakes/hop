@@ -137,7 +137,7 @@
      :content-encoding (first (get headers "content-encoding"))
      :content-type     (first (get headers "content-type"))
      :content-length   (some-> (first (get headers "content-length"))
-                               (Integer/parseInt))}))
+                                 (Integer/parseInt))}))
 
 ;; Send
 
