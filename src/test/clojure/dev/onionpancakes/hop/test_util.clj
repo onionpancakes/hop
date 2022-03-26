@@ -26,3 +26,11 @@
     (with-open [input-stream (u/decompress-body-gzip req)]
       (is (instance? GZIPInputStream input-stream))
       (is (= "foo" (String. (.readAllBytes input-stream)))))))
+
+(deftest test-parse-charset
+  (is (= nil (u/parse-charset {:content-type nil})))
+  (is (= nil (u/parse-charset {:content-type ""})))
+  (is (= nil (u/parse-charset {:content-type "charset="})))
+  (is (= "utf-8" (u/parse-charset {:content-type "charset=utf-8"})))
+  (is (= "utf-8" (u/parse-charset {:content-type "text/html; charset=UTF-8"})))
+  (is (= "utf-8" (u/parse-charset {:content-type "text/html; charset  = utf-8"}))))
