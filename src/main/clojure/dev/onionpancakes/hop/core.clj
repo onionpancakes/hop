@@ -24,7 +24,8 @@
 (def to-proxy-selector
   {:no-proxy HttpClient$Builder/NO_PROXY})
 
-(defn client ^HttpClient
+(defn ^HttpClient client
+  "Creates a HttpClient."
   ([] (client nil))
   ([{:keys [authenticator
             connect-timeout
@@ -52,7 +53,7 @@
 ;; Request
 
 (defprotocol IRequestUri
-  (to-uri [this]))
+  (to-uri [this] "Coerce to URI."))
 
 (extend-protocol IRequestUri
   String
@@ -61,7 +62,7 @@
   (to-uri [this] this))
 
 (defprotocol IRequestBodyPublisher
-  (to-body-publisher [this]))
+  (to-body-publisher [this] "Coerce to BodyPublisher."))
 
 (extend-protocol IRequestBodyPublisher
   (Class/forName "[B")
@@ -87,7 +88,8 @@
     (.setHeader builder header value))
   builder)
 
-(defn to-request-map ^HttpRequest
+(defn ^HttpRequest to-request-map
+  "Creates a HttpRequest from map."
   [{:keys [uri method body headers]}]
   (cond-> (HttpRequest/newBuilder)
     uri     (.uri (to-uri uri))
@@ -96,7 +98,7 @@
     true    (.build)))
 
 (defprotocol IRequest
-  (to-request [this]))
+  (to-request [this] "Coerce to HttpRequest."))
 
 (extend-protocol IRequest
   java.util.Map
@@ -108,7 +110,7 @@
 ;; Response
 
 (defprotocol IResponseBodyHandler
-  (to-body-handler [this]))
+  (to-body-handler [this] "Coerce to BodyHandler."))
 
 (extend-protocol IResponseBodyHandler
   clojure.lang.Keyword
@@ -125,10 +127,12 @@
   (map (juxt key (comp vec val))))
 
 (defn response-map-headers
+  "Creates a map from HttpHeaders."
   [^HttpHeaders headers]
   (into {} response-map-header-xf (.map headers)))
 
 (defn response-map
+  "Creates a map from HttpResponse."
   [^HttpResponse resp]
   (let [headers (response-map-headers (.headers resp))]
     {:status           (.statusCode resp)
@@ -137,14 +141,16 @@
      :content-encoding (first (get headers "content-encoding"))
      :content-type     (first (get headers "content-type"))
      :content-length   (some-> (first (get headers "content-length"))
-                                 (Integer/parseInt))}))
+                               (Integer/parseInt))}))
 
 ;; Send
 
 (def default-client
+  "Delayed default HttpClient."
   (delay (client {:follow-redirects :normal})))
 
 (defn send-with
+  "Sends request with the given client."
   ([client req] (send-with client req nil))
   ([^HttpClient client req {:keys [body-handler response-fn]
                             :or   {body-handler :byte-array
@@ -153,11 +159,13 @@
      response-fn (response-fn))))
 
 (defn send
+  "Sends request with default client."
   ([req] (send req nil))
   ([req opts]
    (send-with @default-client req opts)))
 
 (defn send-async-with
+  "Sends request with given client, returning the response in a CompletableFuture."
   ([client req] (send-async-with client req nil))
   ([^HttpClient client req {:keys [body-handler response-fn]
                             :or   {body-handler :byte-array
@@ -168,6 +176,7 @@
                                  (response-fn resp)))))))
 
 (defn send-async
+  "Sends request with default client, returning the response in a CompletableFuture."
   ([req] (send-async req nil))
   ([req opts]
    (send-async-with @default-client req opts)))
