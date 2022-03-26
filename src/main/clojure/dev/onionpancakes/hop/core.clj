@@ -54,7 +54,9 @@
 
 (extend-protocol IRequestUri
   String
-  (to-uri [this] (URI. this)))
+  (to-uri [this] (URI. this))
+  URI
+  (to-uri [this] this))
 
 (defprotocol IRequestBodyPublisher
   (to-body-publisher [this]))
@@ -75,7 +77,7 @@
   HttpRequest$BodyPublisher
   (to-body-publisher [this] this))
 
-(defn set-request-headers ^HttpRequest$Builder
+(defn set-request-builder-headers ^HttpRequest$Builder
   [^HttpRequest$Builder builder headers]
   (doseq [[k values] headers
           :let       [header (name k)]
@@ -83,18 +85,28 @@
     (.setHeader builder header value))
   builder)
 
-(defn http-request ^HttpRequest
+(defn to-request-map ^HttpRequest
   [{:keys [uri method body headers]}]
   (cond-> (HttpRequest/newBuilder)
     uri     (.uri (to-uri uri))
     method  (.method (upper-case (name method)) (to-body-publisher body))
-    headers (set-request-headers headers)
+    headers (set-request-builder-headers headers)
     true    (.build)))
+
+(defprotocol IRequest
+  (to-request [this]))
+
+(extend-protocol IRequest
+  java.util.Map
+  (to-request [this]
+    (to-request-map this))
+  HttpRequest
+  (to-request [this] this))
 
 ;; Response
 
 (defprotocol IResponseBodyHandler
-  (to-body-handler ^HttpResponse$BodyHandler [this]))
+  (to-body-handler [this]))
 
 (extend-protocol IResponseBodyHandler
   clojure.lang.Keyword
@@ -125,10 +137,10 @@
   ([client req] (send-with client req nil))
   ([^HttpClient client req {:keys [body-handler]
                             :or   {body-handler :byte-array}}]
-   (-> (.send client (http-request req) (to-body-handler body-handler))
+   (-> (.send client (to-request req) (to-body-handler body-handler))
        (response-map))))
 
 (defn send
   ([req] (send req nil))
   ([req opts]
-   (send* @default-client req opts)))
+   (send-with @default-client req opts)))
