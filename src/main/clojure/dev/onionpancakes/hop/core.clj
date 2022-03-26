@@ -148,7 +148,8 @@
 
 (def default-client
   "Delayed default HttpClient."
-  (delay (client {:follow-redirects :normal})))
+  (delay (client {:connect-timeout  (java.time.Duration/ofMinutes 5)
+                  :follow-redirects :normal})))
 
 (defn send-with
   "Sends request with the given client."
