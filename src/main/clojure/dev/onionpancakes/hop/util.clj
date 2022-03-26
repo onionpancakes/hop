@@ -2,7 +2,7 @@
   (:import [java.io ByteArrayInputStream]
            [java.util.zip GZIPInputStream]))
 
-(defn decompress-body-gzip
+(defn ^java.io.InputStream decompress-body-gzip
   "Returns the decompressed input stream from the response body.
   Accepts either input-stream or bytes as body."
   [{:keys [body content-encoding]}]
