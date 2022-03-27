@@ -1,6 +1,6 @@
 (ns dev.onionpancakes.hop.core
   (:refer-clojure :exclude [send])
-  (:require [clojure.string :refer [upper-case]])
+  (:require [clojure.string :refer [upper-case lower-case]])
   (:import [java.nio.file Path]
            [java.net URI]
            [java.net.http
@@ -9,7 +9,9 @@
             HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers
             HttpHeaders]
            [java.util.concurrent CompletableFuture]
-           [java.util.function Function]))
+           [java.util.function Function]
+           [java.io ByteArrayInputStream]
+           [java.util.zip GZIPInputStream]))
 
 ;; Client
 
@@ -110,6 +112,72 @@
 
 ;; Response
 
+(def response-map-header-xf
+  (map (juxt key (comp vec val))))
+
+(defn response-map-headers
+  "Creates a map from HttpHeaders."
+  [^HttpHeaders headers]
+  (into {} response-map-header-xf (.map headers)))
+
+(defn try-parse-long
+  "Attempts to parse a string into a long, returning nil on failure."
+  [s]
+  (try
+    (Long/parseLong s)
+    (catch NumberFormatException _
+      nil)))
+
+;; Parsing mimetype and charset is intentionally not to spec.
+;; AKA, good enough for now.
+;;
+;; The spec compliant parsing is left to the user.
+;; Refer to this for correct spec here:
+;; https://www.w3.org/Protocols/rfc1341/4_Content-Type.html
+
+(def parse-mimetype-regex
+  ;; Parses mimetype as #"^ <type> / <subtype> ;|$".
+  ;; Conditions:
+  ;;  - Must begin at the start of string.
+  ;;  - May have spaces inbetween any of the tokens.
+  ;;  - Must have one foward slash inbetween types.
+  ;;  - Terminated by either semi-colon or end of string.
+  #"^\s*+([^\s;/]++)\s*+/\s*+([^\s;/]++)\s*+(?:;|$)")
+
+(defn parse-mimetype
+  "Parse the mimetype from a content-type string. Truncates all whitespace."
+  [s]
+  (when-let [parse (and s (re-find parse-mimetype-regex s))]
+    (str (second parse) "/" (nth parse 2))))
+
+(def parse-charset-regex
+  ;; Parses charset as #" charset = <encoding> ".
+  #"(?i)charset\s*+=\s*+(\S++)")
+
+(defn parse-charset-encoding
+  "Parse the charset encoding from a content-type string."
+  [s]
+  (when s
+    (second (re-find parse-charset-regex s))))
+
+(defn response-map
+  "Creates a map from HttpResponse."
+  [^HttpResponse resp]
+  (let [headers      (response-map-headers (.headers resp))
+        content-type (first (get headers "content-type"))
+        mimetype     (parse-mimetype content-type)]
+    {:status           (.statusCode resp)
+     :headers          headers
+     :body             (.body resp)
+     :content-encoding (first (get headers "content-encoding"))
+     :content-type     content-type
+     :content-length   (some-> (first (get headers "content-length"))
+                               (try-parse-long))
+     :mimetype         (parse-mimetype content-type)
+     :charset-encoding (parse-charset-encoding content-type)}))
+
+;; Send
+
 (defprotocol IResponseBodyHandler
   (to-body-handler [this] "Coerce to BodyHandler."))
 
@@ -123,28 +191,6 @@
       :string       (HttpResponse$BodyHandlers/ofString)))
   HttpResponse$BodyHandler
   (to-body-handler [this] this))
-
-(def response-map-header-xf
-  (map (juxt key (comp vec val))))
-
-(defn response-map-headers
-  "Creates a map from HttpHeaders."
-  [^HttpHeaders headers]
-  (into {} response-map-header-xf (.map headers)))
-
-(defn response-map
-  "Creates a map from HttpResponse."
-  [^HttpResponse resp]
-  (let [headers (response-map-headers (.headers resp))]
-    {:status           (.statusCode resp)
-     :headers          headers
-     :body             (.body resp)
-     :content-encoding (first (get headers "content-encoding"))
-     :content-type     (first (get headers "content-type"))
-     :content-length   (some-> (first (get headers "content-length"))
-                               (Integer/parseInt))}))
-
-;; Send
 
 (def default-client
   "Delayed default HttpClient."
@@ -182,3 +228,13 @@
   ([req] (send-async req nil))
   ([req opts]
    (send-async-with @default-client req opts)))
+
+;; Gzip
+
+(defn ^java.io.InputStream decompress-body-gzip
+  "Returns the decompressed input stream from the response body.
+  Accepts either input-stream or bytes as body."
+  [{:keys [body content-encoding]}]
+  (cond-> body
+    (bytes? body) (ByteArrayInputStream.)
+    (some-> content-encoding (lower-case) (= "gzip")) (GZIPInputStream.)))
