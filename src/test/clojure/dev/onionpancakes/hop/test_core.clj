@@ -1,8 +1,44 @@
 (ns dev.onionpancakes.hop.test-core
   (:require [clojure.test :refer [deftest is]]
-            [dev.onionpancakes.hop.core :as c])
+            [dev.onionpancakes.hop.core :as c]
+            [dev.onionpancakes.serval.jetty :as srv.jetty])
   (:import [java.io InputStream ByteArrayInputStream ByteArrayOutputStream]
            [java.util.zip GZIPInputStream GZIPOutputStream]))
+
+(def default-config
+  {:connectors [{:port 42000}]
+   :handler    (constantly nil)})
+
+(defonce server
+  (srv.jetty/server default-config))
+
+(defmacro with-response
+  [response & body]
+  `(try
+     (srv.jetty/stop server)
+     (srv.jetty/configure-server! server {:handler (constantly ~response)})
+     (srv.jetty/start server)
+     ~@body
+     (finally
+       (srv.jetty/stop server)
+       (srv.jetty/join server)
+       (srv.jetty/configure-server! server default-config))))
+
+;; Tests
+
+(deftest test-send
+  (with-response {:serval.response/status             200
+                  :serval.response/headers            {"foo" ["bar"]}
+                  :serval.response/body               "foo"
+                  :serval.response/content-type       "text/plain"
+                  :serval.response/character-encoding "utf-8"}
+    (let [resp (c/send {:uri "http://localhost:42000"} {:body-handler :string})]
+      (is (= (:status resp) 200))
+      (is (= (get (:headers resp) "foo") ["bar"]))
+      (is (= (:body resp) "foo"))
+      (is (= (:content-type resp) "text/plain;charset=utf-8"))
+      (is (= (:mimetype resp) "text/plain"))
+      (is (= (:charset resp) "utf-8")))))
 
 (deftest test-parse-mimetype
   (is (= nil (c/parse-mimetype nil)))

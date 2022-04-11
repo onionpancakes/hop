@@ -173,7 +173,7 @@
      :content-length   (some-> (first (get headers "content-length"))
                                (try-parse-long))
      :mimetype         (parse-mimetype content-type)
-     :charset-encoding (parse-charset-encoding content-type)}))
+     :charset          (parse-charset-encoding content-type)}))
 
 ;; Send
 
