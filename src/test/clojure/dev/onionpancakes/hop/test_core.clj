@@ -40,6 +40,20 @@
       (is (= (:mimetype resp) "text/plain"))
       (is (= (:charset resp) "utf-8")))))
 
+(deftest test-send-async
+  (with-response {:serval.response/status             200
+                  :serval.response/headers            {"foo" ["bar"]}
+                  :serval.response/body               "foo"
+                  :serval.response/content-type       "text/plain"
+                  :serval.response/character-encoding "utf-8"}
+    (let [resp (.get (c/send-async {:uri "http://localhost:42000"} {:body-handler :string}))]
+      (is (= (:status resp) 200))
+      (is (= (get (:headers resp) "foo") ["bar"]))
+      (is (= (:body resp) "foo"))
+      (is (= (:content-type resp) "text/plain;charset=utf-8"))
+      (is (= (:mimetype resp) "text/plain"))
+      (is (= (:charset resp) "utf-8")))))
+
 (deftest test-parse-mimetype
   (is (= nil (c/parse-mimetype nil)))
   (is (= nil (c/parse-mimetype "")))
