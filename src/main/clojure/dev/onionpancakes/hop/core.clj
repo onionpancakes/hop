@@ -164,8 +164,7 @@
   "Creates a map from HttpResponse."
   [^HttpResponse resp]
   (let [headers      (response-map-headers (.headers resp))
-        content-type (first (get headers "content-type"))
-        mimetype     (parse-mimetype content-type)]
+        content-type (first (get headers "content-type"))]
     {:status           (.statusCode resp)
      :headers          headers
      :body             (.body resp)
