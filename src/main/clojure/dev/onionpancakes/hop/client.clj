@@ -17,17 +17,17 @@
 
 ;; Request
 
-(defprotocol IUri
-  (uri [this]))
+(defprotocol Uri
+  (to-uri [this]))
 
-(extend-protocol IUri
+(extend-protocol Uri
   String
-  (uri [this] (URI. this))
+  (to-uri [this] (URI. this))
   URI
-  (uri [this] this))
+  (to-uri [this] this))
 
-(defprotocol IBodyPublisher
-  (body-publisher [this]))
+(defprotocol BodyPublisher
+  (to-body-publisher [this]))
 
 (extend-protocol IBodyPublisher
   (Class/forName "[B")
@@ -45,10 +45,10 @@
   HttpRequest$BodyPublisher
   (to-body-publisher [this] this))
 
-(defprotocol IHttpRequest
-  (http-request [this]))
+(defprotocol Request
+  (to-request [this]))
 
-(defn set-http-request-builder-headers ^HttpRequest$Builder
+(defn ^HttpRequest$Builder set-request-builder-headers
   [^HttpRequest$Builder builder headers]
   (doseq [[k values] headers
           :let       [header (name k)]
@@ -56,23 +56,37 @@
     (.setHeader builder header value))
   builder)
 
-(extend-protocol IHttpRequest
+(defn map-request
+  [{:keys [uri method body headers]}]
+  (cond-> (HttpRequest/newBuilder)
+    uri     (.uri (to-uri uri))
+    method  (.method (upper-case (name method)) (to-body-publisher body))
+    headers (set-request-builder-headers headers)
+    true    (.build)))
+
+(defn uri-request
+  [u]
+  (.. (HttpRequest/newBuilder)
+      (uri (to-uri u))
+      (build)))
+
+(extend-protocol Request
   java.util.Map
-  (http-request [{:keys [uri method body headers]}]
-    (cond-> (HttpRequest/newBuilder)
-      uri     (.uri uri)
-      method  (.method (upper-case (name method)) (body-publisher body))
-      headers (set-http-request-builder-headers headers)
-      true    (.build))))
+  (to-request [this]
+    (map-request this))
+  String
+  (to-request [this]
+    (uri-request))
+  URI
+  (to-request [this]
+    (uri-request this))
+  HttpRequest
+  (to-request [this] this))
 
 ;; Response
 
-(def map-of-vecs-xf
+(def headers-xf
   (map (juxt key (comp vec val))))
-
-(defn map-of-vecs
-  [m]
-  (into {} map-of-vecs-xf m))
 
 ;; Parsing mimetype and charset is intentionally not to spec.
 ;; AKA, good enough for now.
@@ -113,7 +127,7 @@
         content-encoding (.. headers (firstValue "content-encoding") (orElse nil))
         content-type     (.. headers (firstValue "content-type") (orElse nil))]
     {:status           (.statusCode response)
-     :headers          (map-of-vecs (.map headers))
+     :headers          (into {} headers-xf (.map headers))
      :body             (.body response)
      :content-encoding content-encoding
      :content-type     content-type
@@ -122,22 +136,21 @@
 
 ;; Client
 
-(def follow-redirect-keys
+(def redirect-keys
   {:always HttpClient$Redirect/ALWAYS
    :never  HttpClient$Redirect/NEVER
    :normal HttpClient$Redirect/NORMAL})
 
-(def http-version-keys
+(def version-keys
   {:http    HttpClient$Version/HTTP_1_1
-   :http1.1 HttpClient$Version/HTTP_1_1
    :http2   HttpClient$Version/HTTP_2})
 
-(def proxy-selector-keys
+(def proxy-keys
   {:no-proxy HttpClient$Builder/NO_PROXY})
 
-(defn ^HttpClient http-client
+(defn ^HttpClient client
   "Creates a HttpClient."
-  ([] (http-client nil))
+  ([] (client nil))
   ([{:keys [authenticator
             connect-timeout
             cookie-handler
@@ -153,20 +166,20 @@
      connect-timeout  (.connectTimeout connect-timeout)
      cookie-handler   (.cookieHandler cookie-handler)
      executor         (.executor executor)
-     follow-redirects (.followRedirects (follow-redirect-keys follow-redirects follow-redirects))
+     follow-redirects (.followRedirects (redirect-keys follow-redirects follow-redirects))
      priority         (.priority priority)
-     proxy-selector   (.proxy (proxy-selector-keys proxy-selector proxy-selector))
+     proxy-selector   (.proxy (proxy-keys proxy-selector proxy-selector))
      ssl-context      (.sslContext ssl-context)
      ssl-parameters   (.sslParameters ssl-parameters)
-     version          (.version (http-version-keys version version))
+     version          (.version (version-keys version version))
      true             (.build))))
 
 ;; Send
 
-(def default-http-client
+(def default-client
   "Delayed default instance of HttpClient."
-  (delay (http-client {:connect-timeout  (java.time.Duration/ofMinutes 5)
-                       :follow-redirects :normal})))
+  (delay (client {:connect-timeout  (java.time.Duration/ofMinutes 5)
+                  :follow-redirects :normal})))
 
 (def body-handler-keys
   {:byte-array   (HttpResponse$BodyHandlers/ofByteArray)
@@ -175,26 +188,30 @@
    :string       (HttpResponse$BodyHandlers/ofString)})
 
 (defn send-with
-  [client request body-handler]
+  "Send request with given client."
+  [^HttpClient client request body-handler]
   (-> client
-      (.send (http-request request) (body-handler-keys body-handler body-handler))
+      (.send (to-request request) (body-handler-keys body-handler body-handler))
       (response-map)))
 
 (defn send
+  "Send request with default client."
   [request body-handler]
-  (send-with @default-http-client request body-handler))
+  (send-with @default-client request body-handler))
 
-(def response-map-function
+(def ^Function response-map-function
   (reify Function
     (apply [_ response]
       (response-map response))))
 
 (defn ^CompletableFuture send-async-with
-  [client request body-handler]
+  "Send async request with given client, returning a CompletableFuture."
+  [^HttpClient client request body-handler]
   (-> client
-      (.sendAsync (http-request request) (body-handler-keys body-handler body-handler))
+      (.sendAsync (to-request request) (body-handler-keys body-handler body-handler))
       (.thenApply response-map-function)))
 
 (defn ^CompletableFuture send-async
+  "Send async request with default client, returning a CompletableFuture."
   [request body-handler]
-  (send-async-with request body-handler))
+  (send-async-with @default-client request body-handler))
