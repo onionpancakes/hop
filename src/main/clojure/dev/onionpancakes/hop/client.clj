@@ -1,6 +1,6 @@
 (ns dev.onionpancakes.hop.client
   (:refer-clojure :exclude [send])
-  (:require [clojure.string :refer [upper-case lower-case]])
+  (:require [clojure.string :refer [upper-case]])
   (:import [java.nio.file Path]
            [java.net URI]
            [java.net.http
@@ -11,9 +11,7 @@
             HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers
             HttpHeaders]
            [java.util.concurrent CompletableFuture]
-           [java.util.function Function]
-           [java.io ByteArrayInputStream]
-           [java.util.zip GZIPInputStream]))
+           [java.util.function Function]))
 
 ;; Request
 
