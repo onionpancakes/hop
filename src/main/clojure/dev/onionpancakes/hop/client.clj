@@ -8,8 +8,7 @@
             HttpClient$Redirect HttpClient$Version 
             HttpRequest HttpRequest$Builder
             HttpRequest$BodyPublishers HttpRequest$BodyPublisher
-            HttpResponse HttpResponse$BodyHandler HttpResponse$BodyHandlers
-            HttpHeaders]
+            HttpResponse HttpResponse$BodyHandlers]
            [java.util.concurrent CompletableFuture]
            [java.util.function Function]))
 
