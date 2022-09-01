@@ -1,5 +1,5 @@
 (ns user
-  (:require [dev.onionpancakes.hop.core :as c]
-            [dev.onionpancakes.hop.test-core :as test.c]))
+  (:require [dev.onionpancakes.hop.client :as hop]
+            [dev.onionpancakes.hop.util :as util]))
 
 
