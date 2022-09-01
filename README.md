@@ -24,7 +24,7 @@ Add to deps.edn
 Require the namespace.
 
 ```clojure
-(require '[dev.onionpancakes.hop.core :as hop])
+(require '[dev.onionpancakes.hop.client :as hop])
 ```
 
 GET
