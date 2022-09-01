@@ -4,21 +4,21 @@
  :aliases
  {:dev
   {:extra-deps  {dev.onionpancakes/serval-core  {:git/url   "https://github.com/onionpancakes/serval"
-                                                 :git/sha   "de2d5d051da64eed11d7a9f7c50637d99fdd0813"
+                                                 :git/sha   "865e3c7294503d0c1ec85b114e13cdf17b2903d3"
                                                  :deps/root "modules/serval-core"}
                  dev.onionpancakes/serval-jetty {:git/url   "https://github.com/onionpancakes/serval"
-                                                 :git/sha   "de2d5d051da64eed11d7a9f7c50637d99fdd0813"
+                                                 :git/sha   "865e3c7294503d0c1ec85b114e13cdf17b2903d3"
                                                  :deps/root "modules/serval-jetty"}}
    :extra-paths ["src/dev/clojure" "src/test/clojure"]}
 
   :run-tests
   {:extra-deps  {dev.onionpancakes/serval-core        {:git/url   "https://github.com/onionpancakes/serval"
-                                                       :git/sha   "de2d5d051da64eed11d7a9f7c50637d99fdd0813"
+                                                       :git/sha   "865e3c7294503d0c1ec85b114e13cdf17b2903d3"
                                                        :deps/root "modules/serval-core"}
                  dev.onionpancakes/serval-jetty       {:git/url   "https://github.com/onionpancakes/serval"
-                                                       :git/sha   "de2d5d051da64eed11d7a9f7c50637d99fdd0813"
+                                                       :git/sha   "865e3c7294503d0c1ec85b114e13cdf17b2903d3"
                                                        :deps/root "modules/serval-jetty"}
-                 io.github.cognitect-labs/test-runner {:git/tag "v0.5.0" :git/sha "b3fd0d2"}}
+                 io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
    :extra-paths ["src/test/clojure"]
    :exec-fn     cognitect.test-runner.api/test
    :exec-args   {:dirs     ["./src/test/clojure"]
