@@ -27,7 +27,7 @@
 (defprotocol BodyPublisher
   (to-body-publisher [this]))
 
-(extend-protocol IBodyPublisher
+(extend-protocol BodyPublisher
   (Class/forName "[B")
   (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofByteArray this))
@@ -74,7 +74,7 @@
     (map-request this))
   String
   (to-request [this]
-    (uri-request))
+    (uri-request this))
   URI
   (to-request [this]
     (uri-request this))
