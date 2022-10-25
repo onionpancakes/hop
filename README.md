@@ -30,7 +30,8 @@ Require the namespace.
 GET
 
 ```clojure
-(hop/send {:uri "http://www.example.com"})
+(hop/send {:uri "http://www.example.com"}
+          :byte-array)
 ```
 
 POST
@@ -38,7 +39,8 @@ POST
 ```clojure
 (hop/send {:method :POST
            :uri    "http://www.example.com"
-           :body   "my post data"})
+           :body   "my post data"}
+          :byte-array)
 ```
 
 # License
