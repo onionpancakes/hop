@@ -16,6 +16,12 @@
   java.nio.file.Path
   (body-publisher [this]
     (HttpRequest$BodyPublishers/ofFile this))
+  java.io.File
+  (body-publisher [this]
+    (HttpRequest$BodyPublishers/ofFile (.toPath this)))
+  java.util.concurrent.Flow$Publisher
+  (body-publisher [this]
+    (HttpRequest$BodyPublishers/fromPublisher this))
   nil
   (body-publisher [_]
     (HttpRequest$BodyPublishers/noBody))
