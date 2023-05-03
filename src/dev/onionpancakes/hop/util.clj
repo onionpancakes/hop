@@ -35,14 +35,23 @@
   (when s
     (second (re-find parse-charset-regex s))))
 
-;; Gzip
+;; Decompress
 
-(defn ^java.io.InputStream decompress-body-gzip
-  "Returns the decompressed input stream from the response body.
-  Accepts either input-stream or bytes as body."
-  [{:keys [body content-encoding]}]
-  (let [is-gzip (if content-encoding
-                  (= (lower-case content-encoding) "gzip"))]
-    (cond-> body
-      (bytes? body) (ByteArrayInputStream.)
-      is-gzip       (GZIPInputStream.))))
+(defmulti ^java.io.InputStream decompress
+  (fn [data encoding] [(class data) (some-> encoding (lower-case))]))
+
+(defmethod decompress [(Class/forName "[B") "gzip"]
+  [data _]
+  (GZIPInputStream. (ByteArrayInputStream. data)))
+
+(defmethod decompress [(Class/forName "[B") nil]
+  [data _]
+  (ByteArrayInputStream. data))
+
+(defmethod decompress [java.io.InputStream "gzip"]
+  [data _]
+  (GZIPInputStream. data))
+
+(defmethod decompress [java.io.InputStream nil]
+  [data _]
+  data)

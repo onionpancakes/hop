@@ -25,25 +25,38 @@
   (is (= "utf-8" (util/parse-charset-encoding "text/html; charset  = utf-8")))
   (is (= "UTF-8" (util/parse-charset-encoding "text/html; charset=UTF-8"))))
 
-(deftest test-decompress-body-gzip-not-compressed
-  ;; Input stream body
-  (let [value "foo"
-        req   {:body (ByteArrayInputStream. (.getBytes value))}]
-    (with-open [input-stream (util/decompress-body-gzip req)]
-      (is (= value (String. (.readAllBytes input-stream))))))
-  ;; Bytes body
-  (let [value "foo"
-        req   {:body (.getBytes value)}]
-    (with-open [input-stream (util/decompress-body-gzip req)]
-      (is (= value (String. (.readAllBytes input-stream)))))))
-
-(deftest test-decompress-body-gzip-compressed
+(deftest test-decompress-bytes-gzip
   (let [value "foo"
         out   (ByteArrayOutputStream.)
         _     (doto (GZIPOutputStream. out)
                 (.write (.getBytes value))
                 (.close))
-        req   {:body             (.toByteArray out)
-               :content-encoding "gzip"}]
-    (with-open [input-stream (util/decompress-body-gzip req)]
-      (is (= value (String. (.readAllBytes input-stream)))))))
+        data  (.toByteArray out)
+        enc   "gzip"]
+    (with-open [input-stream (util/decompress data enc)]
+      (is (= value (slurp input-stream))))))
+
+(deftest test-decompress-bytes-uncompressed
+  (let [value "foo"
+        data  (.getBytes value)
+        enc   nil]
+    (with-open [input-stream (util/decompress data enc)]
+      (is (= value (slurp input-stream))))))
+
+(deftest test-decompress-input-stream-gzip
+  (let [value "foo"
+        out   (ByteArrayOutputStream.)
+        _     (doto (GZIPOutputStream. out)
+                (.write (.getBytes value))
+                (.close))
+        data  (ByteArrayInputStream. (.toByteArray out))
+        enc   "gzip"]
+    (with-open [input-stream (util/decompress data enc)]
+      (is (= value (slurp input-stream))))))
+
+(deftest test-decompress-input-stream-uncompressed
+  (let [value "foo"
+        data  (ByteArrayInputStream. (.getBytes value))
+        enc   nil]
+    (with-open [input-stream (util/decompress data enc)]
+      (is (= value (slurp input-stream))))))

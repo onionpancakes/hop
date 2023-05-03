@@ -9,7 +9,7 @@
                  dev.onionpancakes/serval-jetty {:git/url   "https://github.com/onionpancakes/serval"
                                                  :git/sha   "865e3c7294503d0c1ec85b114e13cdf17b2903d3"
                                                  :deps/root "modules/serval-jetty"}}
-   :extra-paths ["test"]}
+   :extra-paths ["dev" "test"]}
 
   :run-tests
   {:extra-deps  {dev.onionpancakes/serval-core        {:git/url   "https://github.com/onionpancakes/serval"
