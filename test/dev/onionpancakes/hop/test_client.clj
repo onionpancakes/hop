@@ -1,7 +1,6 @@
 (ns dev.onionpancakes.hop.test-client
   (:require [clojure.test :refer [deftest is]]
             [dev.onionpancakes.hop.client :as client]
-            [dev.onionpancakes.hop.response :as response]
             [dev.onionpancakes.serval.jetty :as srv.jetty]))
 
 ;; Test server
@@ -58,24 +57,3 @@
       (is (= (:content-type resp) "text/plain;charset=utf-8"))
       (is (= (:mimetype resp) "text/plain"))
       (is (= (:charset resp) "utf-8")))))
-
-(deftest test-parse-mimetype
-  (is (= nil (response/parse-mimetype nil)))
-  (is (= nil (response/parse-mimetype "")))
-  (is (= nil (response/parse-mimetype "text")))
-  (is (= nil (response/parse-mimetype "texthtml")))
-  (is (= nil (response/parse-mimetype "text/html/xml")))
-  (is (= nil (response/parse-mimetype "text/html xml")))
-  (is (= "text/html" (response/parse-mimetype "text/html")))
-  (is (= "text/html" (response/parse-mimetype " text/html ")))
-  (is (= "text/html" (response/parse-mimetype "text/html;")))
-  (is (= "text/html" (response/parse-mimetype " text / html ;"))))
-
-(deftest test-parse-charset-encoding
-  (is (= nil (response/parse-charset-encoding nil)))
-  (is (= nil (response/parse-charset-encoding "")))
-  (is (= nil (response/parse-charset-encoding "charset=")))
-  (is (= "utf-8" (response/parse-charset-encoding "charset=utf-8")))
-  (is (= "utf-8" (response/parse-charset-encoding "text/html; charset=utf-8")))
-  (is (= "utf-8" (response/parse-charset-encoding "text/html; charset  = utf-8")))
-  (is (= "UTF-8" (response/parse-charset-encoding "text/html; charset=UTF-8"))))
