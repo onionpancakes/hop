@@ -17,6 +17,10 @@
   {:http  HttpClient$Version/HTTP_1_1
    :http2 HttpClient$Version/HTTP_2})
 
+(def from-http-client-version
+  {HttpClient$Version/HTTP_1_1 :http
+   HttpClient$Version/HTTP_2   :http2})
+
 (def http-response-body-handler
   {:byte-array   (HttpResponse$BodyHandlers/ofByteArray)
    :discarding   (HttpResponse$BodyHandlers/discarding)

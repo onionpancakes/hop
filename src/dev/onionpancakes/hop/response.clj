@@ -10,7 +10,9 @@
   (let [headers          (.headers response)
         content-encoding (.. headers (firstValue "content-encoding") (orElse nil))
         content-type     (.. headers (firstValue "content-type") (orElse nil))]
-    {:status           (.statusCode response)
+    {:uri              (.uri response)
+     :version          (k/from-http-client-version (.version response))
+     :status           (.statusCode response)
      :headers          (.map headers)
      :body             (.body response)
      :content-encoding content-encoding
