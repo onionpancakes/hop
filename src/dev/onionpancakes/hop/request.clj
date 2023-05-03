@@ -1,6 +1,7 @@
 (ns dev.onionpancakes.hop.request
   (:require [dev.onionpancakes.hop.protocols :as p]
-            [dev.onionpancakes.hop.keys :as k])
+            [dev.onionpancakes.hop.keys :as k]
+            [clojure.string :refer [upper-case]])
   (:import [java.net.http HttpRequest HttpRequest$Builder HttpRequest$BodyPublishers]))
 
 ;; Body
@@ -55,7 +56,7 @@
                                         timeout version expect-continue]}]
   (cond-> builder
     uri             (.uri (p/uri uri))
-    method          (.method (name method) (p/body-publisher body))
+    method          (.method (upper-case (name method)) (p/body-publisher body))
     headers         (add-request-builder-headers (p/request-headers headers))
     timeout         (.timeout timeout)
     version         (.version (k/http-client-version version version))
