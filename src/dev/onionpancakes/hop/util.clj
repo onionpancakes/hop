@@ -10,7 +10,7 @@
 ;; Refer to this for correct spec here:
 ;; https://www.w3.org/Protocols/rfc1341/4_Content-Type.html
 
-(def parse-mimetype-regex
+(def parse-media-type-regex
   ;; Parses mimetype as #"^ <type> / <subtype> ;|$".
   ;; Conditions:
   ;;  - Must begin at the start of string.
@@ -19,21 +19,21 @@
   ;;  - Terminated by either semi-colon or end of string.
   #"^\s*+([^\s;/]++)\s*+/\s*+([^\s;/]++)\s*+(?:;|$)")
 
-(defn parse-mimetype
+(defn parse-media-type
   "Parse the mimetype from a content-type string. Truncates all whitespace."
   [s]
-  (when-let [parse (and s (re-find parse-mimetype-regex s))]
+  (when-let [parse (and s (re-find parse-media-type-regex s))]
     (str (second parse) "/" (nth parse 2))))
 
-(def parse-charset-regex
+(def parse-character-encoding-regex
   ;; Parses charset as #" charset = <encoding> ".
   #"(?i)charset\s*+=\s*+(\S++)")
 
-(defn parse-charset-encoding
-  "Parse the charset encoding from a content-type string."
+(defn parse-character-encoding
+  "Parse the character encoding from a content-type string."
   [s]
   (when s
-    (second (re-find parse-charset-regex s))))
+    (second (re-find parse-character-encoding-regex s))))
 
 ;; Decompress
 

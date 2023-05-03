@@ -4,26 +4,26 @@
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
            [java.util.zip GZIPOutputStream]))
 
-(deftest test-parse-mimetype
-  (is (= nil (util/parse-mimetype nil)))
-  (is (= nil (util/parse-mimetype "")))
-  (is (= nil (util/parse-mimetype "text")))
-  (is (= nil (util/parse-mimetype "texthtml")))
-  (is (= nil (util/parse-mimetype "text/html/xml")))
-  (is (= nil (util/parse-mimetype "text/html xml")))
-  (is (= "text/html" (util/parse-mimetype "text/html")))
-  (is (= "text/html" (util/parse-mimetype " text/html ")))
-  (is (= "text/html" (util/parse-mimetype "text/html;")))
-  (is (= "text/html" (util/parse-mimetype " text / html ;"))))
+(deftest test-parse-media-type
+  (is (= nil (util/parse-media-type nil)))
+  (is (= nil (util/parse-media-type "")))
+  (is (= nil (util/parse-media-type "text")))
+  (is (= nil (util/parse-media-type "texthtml")))
+  (is (= nil (util/parse-media-type "text/html/xml")))
+  (is (= nil (util/parse-media-type "text/html xml")))
+  (is (= "text/html" (util/parse-media-type "text/html")))
+  (is (= "text/html" (util/parse-media-type " text/html ")))
+  (is (= "text/html" (util/parse-media-type "text/html;")))
+  (is (= "text/html" (util/parse-media-type " text / html ;"))))
 
-(deftest test-parse-charset-encoding
-  (is (= nil (util/parse-charset-encoding nil)))
-  (is (= nil (util/parse-charset-encoding "")))
-  (is (= nil (util/parse-charset-encoding "charset=")))
-  (is (= "utf-8" (util/parse-charset-encoding "charset=utf-8")))
-  (is (= "utf-8" (util/parse-charset-encoding "text/html; charset=utf-8")))
-  (is (= "utf-8" (util/parse-charset-encoding "text/html; charset  = utf-8")))
-  (is (= "UTF-8" (util/parse-charset-encoding "text/html; charset=UTF-8"))))
+(deftest test-parse-character-encoding
+  (is (= nil (util/parse-character-encoding nil)))
+  (is (= nil (util/parse-character-encoding "")))
+  (is (= nil (util/parse-character-encoding "charset=")))
+  (is (= "utf-8" (util/parse-character-encoding "charset=utf-8")))
+  (is (= "utf-8" (util/parse-character-encoding "text/html; charset=utf-8")))
+  (is (= "utf-8" (util/parse-character-encoding "text/html; charset  = utf-8")))
+  (is (= "UTF-8" (util/parse-character-encoding "text/html; charset=UTF-8"))))
 
 (deftest test-decompress-bytes-gzip
   (let [value "foo"

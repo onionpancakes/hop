@@ -40,8 +40,8 @@
       (is (= (get (:headers resp) "foo") ["bar"]))
       (is (= (:body resp) "foo"))
       (is (= (:content-type resp) "text/plain;charset=utf-8"))
-      (is (= (:mimetype resp) "text/plain"))
-      (is (= (:charset resp) "utf-8")))))
+      (is (= (:media-type resp) "text/plain"))
+      (is (= (:character-encoding resp) "utf-8")))))
 
 (deftest test-send-async
   (with-response {:serval.response/status             200
@@ -55,5 +55,5 @@
       (is (= (get (:headers resp) "foo") ["bar"]))
       (is (= (:body resp) "foo"))
       (is (= (:content-type resp) "text/plain;charset=utf-8"))
-      (is (= (:mimetype resp) "text/plain"))
-      (is (= (:charset resp) "utf-8")))))
+      (is (= (:media-type resp) "text/plain"))
+      (is (= (:character-encoding resp) "utf-8")))))
