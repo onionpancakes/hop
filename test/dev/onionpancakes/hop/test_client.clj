@@ -1,6 +1,7 @@
 (ns dev.onionpancakes.hop.test-client
   (:require [clojure.test :refer [deftest is]]
             [dev.onionpancakes.hop.client :as client]
+            [dev.onionpancakes.hop.response :as response]
             [dev.onionpancakes.serval.jetty :as srv.jetty]))
 
 ;; Test server
@@ -59,22 +60,22 @@
       (is (= (:charset resp) "utf-8")))))
 
 (deftest test-parse-mimetype
-  (is (= nil (client/parse-mimetype nil)))
-  (is (= nil (client/parse-mimetype "")))
-  (is (= nil (client/parse-mimetype "text")))
-  (is (= nil (client/parse-mimetype "texthtml")))
-  (is (= nil (client/parse-mimetype "text/html/xml")))
-  (is (= nil (client/parse-mimetype "text/html xml")))
-  (is (= "text/html" (client/parse-mimetype "text/html")))
-  (is (= "text/html" (client/parse-mimetype " text/html ")))
-  (is (= "text/html" (client/parse-mimetype "text/html;")))
-  (is (= "text/html" (client/parse-mimetype " text / html ;"))))
+  (is (= nil (response/parse-mimetype nil)))
+  (is (= nil (response/parse-mimetype "")))
+  (is (= nil (response/parse-mimetype "text")))
+  (is (= nil (response/parse-mimetype "texthtml")))
+  (is (= nil (response/parse-mimetype "text/html/xml")))
+  (is (= nil (response/parse-mimetype "text/html xml")))
+  (is (= "text/html" (response/parse-mimetype "text/html")))
+  (is (= "text/html" (response/parse-mimetype " text/html ")))
+  (is (= "text/html" (response/parse-mimetype "text/html;")))
+  (is (= "text/html" (response/parse-mimetype " text / html ;"))))
 
 (deftest test-parse-charset-encoding
-  (is (= nil (client/parse-charset-encoding nil)))
-  (is (= nil (client/parse-charset-encoding "")))
-  (is (= nil (client/parse-charset-encoding "charset=")))
-  (is (= "utf-8" (client/parse-charset-encoding "charset=utf-8")))
-  (is (= "utf-8" (client/parse-charset-encoding "text/html; charset=utf-8")))
-  (is (= "utf-8" (client/parse-charset-encoding "text/html; charset  = utf-8")))
-  (is (= "UTF-8" (client/parse-charset-encoding "text/html; charset=UTF-8"))))
+  (is (= nil (response/parse-charset-encoding nil)))
+  (is (= nil (response/parse-charset-encoding "")))
+  (is (= nil (response/parse-charset-encoding "charset=")))
+  (is (= "utf-8" (response/parse-charset-encoding "charset=utf-8")))
+  (is (= "utf-8" (response/parse-charset-encoding "text/html; charset=utf-8")))
+  (is (= "utf-8" (response/parse-charset-encoding "text/html; charset  = utf-8")))
+  (is (= "UTF-8" (response/parse-charset-encoding "text/html; charset=UTF-8"))))

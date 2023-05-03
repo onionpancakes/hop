@@ -1,16 +1,16 @@
 (ns dev.onionpancakes.hop.protocols)
 
 (defprotocol URI
-  (uri [this] "Coerce to URI."))
+  (uri [this] "Return this as URI."))
 
 (defprotocol RequestBody
-  (body-publisher [this] "Coerce to BodyPublisher."))
+  (body-publisher [this] "Return this as BodyPublisher."))
 
 (defprotocol RequestHeaders
-  (request-headers [this] "Return as header kv entries."))
+  (request-headers [this] "Return this as [name value] entries."))
 
 (defprotocol Request
-  (request [this] "Build HttpRequest."))
+  (request [this] "Return this as HttpRequest."))
 
 ;; Extend
 
