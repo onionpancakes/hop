@@ -1,7 +1,6 @@
 (ns dev.onionpancakes.hop.request
   (:require [dev.onionpancakes.hop.protocols :as p]
-            [dev.onionpancakes.hop.keys :as k]
-            [clojure.string :refer [upper-case]])
+            [dev.onionpancakes.hop.keys :as k])
   (:import [java.net.http HttpRequest HttpRequest$Builder HttpRequest$BodyPublishers]))
 
 ;; Body
@@ -32,10 +31,14 @@
 (def request-headers-from-map-xf
   (mapcat request-headers-from-map-entry))
 
+(defn request-headers-from-map
+  [m]
+  (eduction request-headers-from-map-xf m))
+
 (extend-protocol p/RequestHeaders
   java.util.Map
   (request-headers [this]
-    (eduction request-headers-from-map-xf this)))
+    (request-headers-from-map this)))
 
 ;; Build request
 
@@ -52,7 +55,7 @@
                                         timeout version expect-continue]}]
   (cond-> builder
     uri             (.uri (p/uri uri))
-    method          (.method (upper-case (name method)) (p/body-publisher body))
+    method          (.method (name method) (p/body-publisher body))
     headers         (add-request-builder-headers (p/request-headers headers))
     timeout         (.timeout timeout)
     version         (.version (k/http-client-version version version))
