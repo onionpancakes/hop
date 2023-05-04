@@ -23,6 +23,8 @@
 
 (def http-response-body-handler
   {:byte-array   (HttpResponse$BodyHandlers/ofByteArray)
-   :discarding   (HttpResponse$BodyHandlers/discarding)
+   :discard      (HttpResponse$BodyHandlers/discarding)
    :input-stream (HttpResponse$BodyHandlers/ofInputStream)
+   :lines        (HttpResponse$BodyHandlers/ofLines)
+   :publisher    (HttpResponse$BodyHandlers/ofPublisher)
    :string       (HttpResponse$BodyHandlers/ofString)})
