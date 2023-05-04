@@ -47,7 +47,7 @@
     (is (= (:headers resp-map) {"content-type"     ["text/html;charset=utf-8"]
                                 "content-encoding" ["gzip"]}))
     (is (= (:body resp-map) "foo"))
-    (is (= (:version resp-map) :http))
+    (is (= (:version resp-map) HttpClient$Version/HTTP_1_1))
     (is (= (:content-encoding resp-map) "gzip"))
     (is (= (:content-type resp-map) "text/html;charset=utf-8"))
     (is (= (:media-type resp-map) "text/html"))

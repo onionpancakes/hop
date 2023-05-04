@@ -8,9 +8,7 @@
 
 (defn response-map
   [^HttpResponse response]
-  (-> (datafy/HttpResponse->map response)
-      (update :headers datafy/HttpHeaders->map)
-      (update :version k/from-http-client-version)))
+  (datafy/HttpResponse->map response))
 
 (def ^java.util.function.Function response-map-function
   (reify java.util.function.Function

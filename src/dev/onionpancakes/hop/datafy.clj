@@ -14,7 +14,7 @@
   [^HttpRequest request]
   (into {:uri             (.uri request)
          :method          (.method request)
-         :headers         (.headers request)
+         :headers         (HttpHeaders->map (.headers request))
          :expect-continue (.expectContinue request)}
         (remove (comp nil? val))
         {:body    (.. request (bodyPublisher) (orElse nil))
@@ -30,7 +30,7 @@
            :uri     (.uri response)
            :version (.version response)
            :status  (.statusCode response)
-           :headers headers
+           :headers (HttpHeaders->map headers)
            :body    (.body response)}
           (remove (comp nil? val))
           {:content-encoding   content-encoding
