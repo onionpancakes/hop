@@ -26,7 +26,8 @@
   (let [headers          (.headers response)
         content-encoding (.. headers (firstValue "content-encoding") (orElse nil))
         content-type     (.. headers (firstValue "content-type") (orElse nil))]
-    (into {:uri     (.uri response)
+    (into {:request (.request response)
+           :uri     (.uri response)
            :version (.version response)
            :status  (.statusCode response)
            :headers headers
