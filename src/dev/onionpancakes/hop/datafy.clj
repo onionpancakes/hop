@@ -39,7 +39,7 @@
            :ssl-session        (.. response (sslSession) (orElse nil))
            :previous-response  (.. response (previousResponse) (orElse nil))})))
 
-(defn datafy!
+(defn extend-datafiable!
   []
   (extend-protocol core.p/Datafiable
     HttpHeaders
