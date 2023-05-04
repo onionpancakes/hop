@@ -32,8 +32,10 @@
 
 (defn request-headers-from-map-entry
   [^java.util.Map$Entry entry]
-  (let [header-name (name (.getKey entry))]
-    (eduction (map (partial vector header-name)) (.getValue entry))))
+  (let [header-name (some-> (key entry) (name))]
+    (eduction (comp (map (partial vector header-name))
+                    (filter (partial every? some?)))
+              (val entry))))
 
 (def request-headers-from-map-xf
   (mapcat request-headers-from-map-entry))
