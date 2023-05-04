@@ -75,6 +75,15 @@
       (is (= (:media-type resp) "text/plain"))
       (is (= (:character-encoding resp) "utf-8")))))
 
+(deftest test-send-default-body
+  (with-response {:serval.response/status             200
+                  :serval.response/body               "foo"
+                  :serval.response/content-type       "text/plain"
+                  :serval.response/character-encoding "utf-8"}
+    (let [resp (client/send server-uri)]
+      (is (bytes? (:body resp)))
+      (is (= (slurp (:body resp)) "foo")))))
+
 (deftest test-send-async
   (with-response {:serval.response/status             200
                   :serval.response/headers            {"foo" ["bar"]}
@@ -89,3 +98,12 @@
       (is (= (:content-type resp) "text/plain;charset=utf-8"))
       (is (= (:media-type resp) "text/plain"))
       (is (= (:character-encoding resp) "utf-8")))))
+
+(deftest test-send-async-default-body
+  (with-response {:serval.response/status             200
+                  :serval.response/body               "foo"
+                  :serval.response/content-type       "text/plain"
+                  :serval.response/character-encoding "utf-8"}
+    (let [resp (.get (client/send-async server-uri))]
+      (is (bytes? (:body resp)))
+      (is (= (slurp (:body resp)) "foo")))))

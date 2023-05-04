@@ -43,24 +43,32 @@
 
 (defn send-with
   "Send request with given client."
-  [^HttpClient client request body-handler]
-  (-> client
-      (.send (request/request request) (response/body-handler body-handler))
-      (response/response-map)))
+  ([client request]
+   (send-with client request :byte-array))
+  ([^HttpClient client request body-handler]
+   (-> client
+       (.send (request/request request) (response/body-handler body-handler))
+       (response/response-map))))
 
 (defn send
   "Send request with default client."
-  [request body-handler]
-  (send-with @default-client request body-handler))
+  ([request]
+   (send-with @default-client request))
+  ([request body-handler]
+   (send-with @default-client request body-handler)))
 
 (defn ^CompletableFuture send-async-with
   "Send async request with given client, returning a CompletableFuture."
-  [^HttpClient client request body-handler]
-  (-> client
-      (.sendAsync (request/request request) (response/body-handler body-handler))
-      (.thenApply response/response-map-function)))
+  ([client request]
+   (send-async-with client request :byte-array))
+  ([^HttpClient client request body-handler]
+   (-> client
+       (.sendAsync (request/request request) (response/body-handler body-handler))
+       (.thenApply response/response-map-function))))
 
 (defn ^CompletableFuture send-async
   "Send async request with default client, returning a CompletableFuture."
-  [request body-handler]
-  (send-async-with @default-client request body-handler))
+  ([request]
+   (send-async-with @default-client request))
+  ([request body-handler]
+   (send-async-with @default-client request body-handler)))
