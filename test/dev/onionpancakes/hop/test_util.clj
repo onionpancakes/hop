@@ -1,29 +1,33 @@
 (ns dev.onionpancakes.hop.test-util
-  (:require [clojure.test :refer [deftest is]]
+  (:require [clojure.test :refer [deftest is are]]
             [dev.onionpancakes.hop.util :as util])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]
            [java.util.zip GZIPOutputStream]))
 
 (deftest test-parse-media-type
-  (is (= nil (util/parse-media-type nil)))
-  (is (= nil (util/parse-media-type "")))
-  (is (= nil (util/parse-media-type "text")))
-  (is (= nil (util/parse-media-type "texthtml")))
-  (is (= nil (util/parse-media-type "text/html/xml")))
-  (is (= nil (util/parse-media-type "text/html xml")))
-  (is (= "text/html" (util/parse-media-type "text/html")))
-  (is (= "text/html" (util/parse-media-type " text/html ")))
-  (is (= "text/html" (util/parse-media-type "text/html;")))
-  (is (= "text/html" (util/parse-media-type " text / html ;"))))
+  (are [s expected] (= (util/parse-media-type s) expected)
+    nil             nil
+    ""              nil
+    "text"          nil
+    "texthtml"      nil
+    "text/html/xml" nil
+    "text/html xml" nil
+
+    "text/html"     "text/html"
+    "text/html "    "text/html"
+    "text/html;"    "text/html"
+    "text / html ;" "text/html"))
 
 (deftest test-parse-character-encoding
-  (is (= nil (util/parse-character-encoding nil)))
-  (is (= nil (util/parse-character-encoding "")))
-  (is (= nil (util/parse-character-encoding "charset=")))
-  (is (= "utf-8" (util/parse-character-encoding "charset=utf-8")))
-  (is (= "utf-8" (util/parse-character-encoding "text/html; charset=utf-8")))
-  (is (= "utf-8" (util/parse-character-encoding "text/html; charset  = utf-8")))
-  (is (= "UTF-8" (util/parse-character-encoding "text/html; charset=UTF-8"))))
+  (are [s expected] (= (util/parse-character-encoding s) expected)
+    nil        nil
+    ""         nil
+    "charset=" nil
+
+    "charset=utf-8"              "utf-8"
+    "text/html; charset=utf-8"   "utf-8"
+    "text/html; charset =  utf-8" "utf-8"
+    "text/html; charset=UTF-8"   "UTF-8"))
 
 (deftest test-decompress-bytes-gzip
   (let [value "foo"
