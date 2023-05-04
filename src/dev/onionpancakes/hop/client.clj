@@ -17,7 +17,7 @@
             executor
             follow-redirects
             priority
-            proxy-selector
+            proxy
             ssl-context
             ssl-parameters
             version]}]
@@ -28,7 +28,7 @@
      executor         (.executor executor)
      follow-redirects (.followRedirects (k/http-client-redirect follow-redirects follow-redirects))
      priority         (.priority priority)
-     proxy-selector   (.proxy (k/proxy-selector proxy-selector proxy-selector))
+     proxy            (.proxy (k/proxy-selector proxy proxy))
      ssl-context      (.sslContext ssl-context)
      ssl-parameters   (.sslParameters ssl-parameters)
      version          (.version (k/http-client-version version version))
