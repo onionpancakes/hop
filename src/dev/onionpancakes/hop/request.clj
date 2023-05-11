@@ -31,6 +31,7 @@
 ;; Headers
 
 (defn request-headers-from-map-entry
+  "Return request header entries from map entry."
   [^java.util.Map$Entry entry]
   (let [header-name (some-> (key entry) (name))]
     (eduction (comp (map (partial vector header-name))
@@ -41,6 +42,7 @@
   (mapcat request-headers-from-map-entry))
 
 (defn request-headers-from-map
+  "Return request header entries from map."
   [m]
   (eduction request-headers-from-map-xf m))
 
@@ -56,10 +58,12 @@
   (.header builder k v))
 
 (defn ^HttpRequest$Builder add-request-builder-headers
+  "Adds HttpRequest Builder headers."
   [builder headers]
   (reduce add-request-builder-headers-rf builder headers))
 
 (defn ^HttpRequest$Builder set-request-builder
+  "Sets HttpRequest Builder."
   [^HttpRequest$Builder builder {:keys [uri method headers body
                                         timeout version expect-continue]}]
   (cond-> builder
@@ -95,5 +99,6 @@
   (request [this] this))
 
 (defn request
+  "Returns as HttpRequest."
   [req]
   (p/request req))
