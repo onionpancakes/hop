@@ -4,101 +4,114 @@
             [clojure.string :refer [upper-case]])
   (:import [java.net.http HttpRequest HttpRequest$Builder HttpRequest$BodyPublishers]))
 
+;; Protocols
+
+(defprotocol URI
+  (to-uri [this] "Return this as URI."))
+
+(defprotocol Body
+  (to-body-publisher [this] "Return this as BodyPublisher."))
+
+(defprotocol Headers
+  (set-headers [this builder] "Set request builder headers."))
+
+(defprotocol Request
+  (to-request [this] "Return this as HttpRequest."))
+
+;; URI
+
+(extend-protocol URI
+  String
+  (to-uri [this] (java.net.URI. this))
+  java.net.URL
+  (to-uri [this] (.toURI this))
+  java.net.URI
+  (to-uri [this] this))
+
 ;; Body
 
-(extend-protocol p/RequestBody
+(extend-protocol Body
   (Class/forName "[B")
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofByteArray this))
   String
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofString this))
   java.nio.file.Path
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofFile this))
   java.io.File
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/ofFile (.toPath this)))
   java.util.concurrent.Flow$Publisher
-  (body-publisher [this]
+  (to-body-publisher [this]
     (HttpRequest$BodyPublishers/fromPublisher this))
   nil
-  (body-publisher [_]
+  (to-body-publisher [_]
     (HttpRequest$BodyPublishers/noBody))
   java.net.http.HttpRequest$BodyPublisher
-  (body-publisher [this] this))
+  (to-body-publisher [this] this))
 
 ;; Headers
 
-(defn request-headers-from-map-entry
-  "Return request header entries from map entry."
-  [^java.util.Map$Entry entry]
-  (let [header-name (some-> (key entry) (name))]
-    (eduction (comp (map (partial vector header-name))
-                    (filter (partial every? some?)))
-              (val entry))))
+(defn add-headers-from-key-values
+  [builder key values]
+  (let [header-name   (name key)
+        add-header-rf #(.header ^HttpRequest$Builder % header-name %2)]
+    (reduce add-header-rf builder values)))
 
-(def request-headers-from-map-xf
-  (mapcat request-headers-from-map-entry))
-
-(defn request-headers-from-map
-  "Return request header entries from map."
-  [m]
-  (eduction request-headers-from-map-xf m))
-
-(extend-protocol p/RequestHeaders
+(extend-protocol Headers
   java.util.Map
-  (request-headers [this]
-    (request-headers-from-map this)))
+  (set-headers [this builder]
+    (reduce-kv add-headers-from-key-values builder this))
+  nil
+  (set-headers [_ builder] builder))
 
-;; Build request
-
-(defn add-request-builder-headers-rf
-  [^HttpRequest$Builder builder [k v]]
-  (.header builder k v))
-
-(defn ^HttpRequest$Builder add-request-builder-headers
-  "Adds HttpRequest Builder headers."
+(defn set-request-builder-headers
+  ^HttpRequest$Builder
   [builder headers]
-  (reduce add-request-builder-headers-rf builder headers))
+  (set-headers headers builder))
 
-(defn ^HttpRequest$Builder set-request-builder
+;; Request
+
+(defn set-request-builder-from-map
   "Sets HttpRequest Builder."
+  ^HttpRequest$Builder
   [^HttpRequest$Builder builder {:keys [uri method headers body
                                         timeout version expect-continue]}]
   (cond-> builder
-    uri             (.uri (p/uri uri))
-    method          (.method (upper-case (name method)) (p/body-publisher body))
-    headers         (add-request-builder-headers (p/request-headers headers))
-    timeout         (.timeout timeout)
-    version         (.version (k/http-client-version version version))
-    expect-continue (.expectContinue expect-continue)))
+    (some? uri)             (.uri (to-uri uri))
+    (some? method)          (.method (upper-case (name method)) (to-body-publisher body))
+    (some? headers)         (set-request-builder-headers headers)
+    (some? timeout)         (.timeout timeout)
+    (some? version)         (.version (k/http-client-version version version))
+    (some? expect-continue) (.expectContinue expect-continue)))
 
-(extend-protocol p/Request
+(extend-protocol Request
   java.util.Map
-  (request [this]
+  (to-request [this]
     (-> (HttpRequest/newBuilder)
-        (set-request-builder this)
+        (set-request-builder-from-map this)
         (.build)))
   String
-  (request [this]
+  (to-request [this]
     (.. (HttpRequest/newBuilder)
-        (uri (p/uri this))
+        (uri (to-uri this))
         (build)))
   java.net.URI
-  (request [this]
+  (to-request [this]
     (.. (HttpRequest/newBuilder)
         (uri this)
         (build)))
   java.net.URL
-  (request [this]
+  (to-request [this]
     (.. (HttpRequest/newBuilder)
-        (uri (p/uri this))
+        (uri (to-uri this))
         (build)))
   HttpRequest
-  (request [this] this))
+  (to-request [this] this))
 
 (defn request
-  "Returns as HttpRequest."
+  ^HttpRequest
   [req]
-  (p/request req))
+  (to-request req))

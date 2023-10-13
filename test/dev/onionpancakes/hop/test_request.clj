@@ -40,6 +40,8 @@
                             (= (.map (.headers obj)) expected))
     {"Foo" ["Bar"]} {"Foo" ["Bar"]}
     {:Foo ["Bar"]}  {"Foo" ["Bar"]}
+    ;; Handle nil in map headers?
+    #_#_#_#_#_#_
     {:Foo nil}      {}
     {:Foo [nil]}    {}
     {nil nil}       {}))
