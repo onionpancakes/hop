@@ -3,6 +3,8 @@
             [dev.onionpancakes.hop.util :as util])
   (:import [java.net.http HttpRequest HttpResponse]))
 
+(declare response-proxy-function)
+
 (defn lookup-response
   [^HttpResponse this k not-found]
   (case k
@@ -31,19 +33,22 @@
                             (map util/parse-character-encoding-function)
                             (orElse not-found))
     :ssl-session        (.. this (sslSession) (orElse not-found))
-    :previous-response  (.. this (previousResponse) (orElse not-found))
+    :previous-response  (.. this
+                            (previousResponse)
+                            (map response-proxy-function)
+                            (orElse not-found))
     not-found))
 
-(def lookup-response-keys
+(def response-lookup-keys
   [:request :uri :version :status :headers :body
    :content-encoding :content-type :media-type :character-encoding
-   :ssl-session :previous-version])
+   :ssl-session :previous-response])
 
 (defn response-map
   [response]
   (let [map-entry-fn #(when-let [value (lookup-response response % nil)]
-                        (clojure.lang.MapEntry. % value))]
-    (into {} (keep map-entry-fn) lookup-response-keys)))
+                        (clojure.lang.MapEntry/create % value))]
+    (into {} (keep map-entry-fn) response-lookup-keys)))
 
 (deftype ResponseProxy [response]
   clojure.lang.ILookup
@@ -58,7 +63,7 @@
     (.valAt this k not-found))
   Object
   (toString [this]
-    (str (response-map response))))
+    (str (:version this) " " (:status this) " " (:uri this) " " )))
 
 (defn response-proxy
   [response]

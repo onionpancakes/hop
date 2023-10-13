@@ -31,7 +31,7 @@
     (version [this]
       (:version m))))
 
-(deftest test-response-map
+(deftest test-response-proxy
   (let [headers  {"content-type"     ["text/html;charset=utf-8"]
                   "content-encoding" ["gzip"]}
         resp-obj (make-response {:request (request/request "http://example.com")
@@ -40,7 +40,7 @@
                                  :headers (make-http-headers headers)
                                  :body    "foo"
                                  :version HttpClient$Version/HTTP_1_1})
-        resp-map (response/response-map resp-obj)]
+        resp-map (response/response-proxy resp-obj)]
     (is (instance? HttpRequest (:request resp-map)))
     (is (= (:uri resp-map) (java.net.URI. "http://example.com")))
     (is (= (:status resp-map) 200))
