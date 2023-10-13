@@ -89,6 +89,9 @@
 
 ;; BodyHandler
 
+;; Note: Handle non-keyword body handlers in the future?
+;; e.g. Strings/Paths as BodyHandlers/ofFile ?
+
 (defn body-handler
   "Return as BodyHandler."
   [bh]
