@@ -44,26 +44,38 @@
    :content-encoding :content-type :media-type :character-encoding
    :ssl-session :previous-response])
 
-(defn response-map
+(defn response-entries
   [response]
   (let [map-entry-fn #(when-let [value (lookup-response response % nil)]
                         (clojure.lang.MapEntry/create % value))]
-    (into {} (keep map-entry-fn) response-lookup-keys)))
+    (eduction (keep map-entry-fn) response-lookup-keys)))
 
 (deftype ResponseProxy [response]
-  clojure.lang.ILookup
-  (valAt [this k]
-    (.valAt this k nil))
-  (valAt [this k not-found]
-    (lookup-response response k not-found))
-  clojure.lang.IFn
-  (invoke [this k]
-    (.valAt this k nil))
-  (invoke [this k not-found]
-    (.valAt this k not-found))
-  Object
-  (toString [this]
-    (str (:version this) " " (:status this) " " (:uri this) " " )))
+  java.util.Map
+  (clear [this]
+    (throw (UnsupportedOperationException.)))
+  (containsKey [this k]
+    (some? (lookup-response response k nil)))
+  (containsValue [this value]
+    (-> (into #{} (map val) (response-entries response))
+        (contains? value)))
+  (entrySet [this]
+    (set (response-entries response)))
+  (get [this k]
+    (lookup-response response k nil))
+  (isEmpty [this] false)
+  (keySet [this]
+    (into #{} (map key) (response-entries response)))
+  (put [this k value]
+    (throw (UnsupportedOperationException.)))
+  (putAll [this m]
+    (throw (UnsupportedOperationException.)))
+  (remove [this k]
+    (throw (UnsupportedOperationException.)))
+  (size [this]
+    (count (vec (response-entries response))))
+  (values [this]
+    (mapv val (response-entries response))))
 
 (defn response-proxy
   [response]
