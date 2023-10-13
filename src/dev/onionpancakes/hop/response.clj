@@ -1,5 +1,5 @@
 (ns dev.onionpancakes.hop.response
-  (:require [dev.onionpancakes.hop.keys :as k]
+  (:require [dev.onionpancakes.hop.keywords :as k]
             [dev.onionpancakes.hop.util :as util])
   (:import [java.net.http HttpRequest HttpResponse]))
 

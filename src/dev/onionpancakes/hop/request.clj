@@ -1,5 +1,5 @@
 (ns dev.onionpancakes.hop.request
-  (:require [dev.onionpancakes.hop.keys :as k]
+  (:require [dev.onionpancakes.hop.keywords :as k]
             [clojure.string :refer [upper-case]])
   (:import [java.net.http
             HttpRequest

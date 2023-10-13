@@ -1,4 +1,4 @@
-(ns dev.onionpancakes.hop.keys
+(ns dev.onionpancakes.hop.keywords
   (:import [java.net.http
             HttpClient$Builder
             HttpClient$Redirect

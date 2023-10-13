@@ -1,6 +1,6 @@
 (ns dev.onionpancakes.hop.client
   (:refer-clojure :exclude [send])
-  (:require [dev.onionpancakes.hop.keys :as k]
+  (:require [dev.onionpancakes.hop.keywords :as k]
             [dev.onionpancakes.hop.request :as request]
             [dev.onionpancakes.hop.response :as response])
   (:import [java.net.http HttpClient]
