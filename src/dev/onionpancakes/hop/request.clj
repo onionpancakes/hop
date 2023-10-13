@@ -86,7 +86,7 @@
                                             (body-publisher (:body m)))
     (contains? m :headers)         (set-request-builder-headers (:headers m))
     (contains? m :timeout)         (.timeout (:timeout m))
-    (contains? m :version)         (.version (k/http-client-version (:version m) (:version m)))
+    (contains? m :version)         (.version (k/version (:version m) (:version m)))
     (contains? m :expect-continue) (.expectContinue (:expect-continue m))))
 
 (extend-protocol Request

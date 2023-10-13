@@ -92,4 +92,4 @@
 (defn body-handler
   "Return as BodyHandler."
   [bh]
-  (k/http-response-body-handler bh bh))
+  (k/body-handler bh bh))

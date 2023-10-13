@@ -26,12 +26,12 @@
      connect-timeout  (.connectTimeout connect-timeout)
      cookie-handler   (.cookieHandler cookie-handler)
      executor         (.executor executor)
-     follow-redirects (.followRedirects (k/http-client-redirect follow-redirects follow-redirects))
+     follow-redirects (.followRedirects (k/redirect follow-redirects follow-redirects))
      priority         (.priority priority)
      proxy            (.proxy (k/proxy-selector proxy proxy))
      ssl-context      (.sslContext ssl-context)
      ssl-parameters   (.sslParameters ssl-parameters)
-     version          (.version (k/http-client-version version version))
+     version          (.version (k/version version version))
      true             (.build))))
 
 ;; Send
@@ -62,9 +62,9 @@
   ([client request]
    (send-async-with client request :byte-array))
   ([^HttpClient client request body-handler]
-   (-> client
-       (.sendAsync (request/request request) (response/body-handler body-handler))
-       (.thenApply response/response-proxy-function))))
+   (.. client
+       (sendAsync (request/request request) (response/body-handler body-handler))
+       (thenApply response/response-proxy-function))))
 
 (defn ^CompletableFuture send-async
   "Send async request with default client, returning a CompletableFuture."
