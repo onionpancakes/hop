@@ -14,6 +14,9 @@
 (defprotocol Body
   (body-publisher [this] "Return as BodyPublisher."))
 
+(defprotocol HeaderValues
+  (add-header-values [this header-name builder] "Add request builder header values."))
+
 (defprotocol Headers
   (set-headers [this builder] "Set request builder headers."))
 
@@ -54,13 +57,22 @@
   (body-publisher [_]
     (HttpRequest$BodyPublishers/noBody)))
 
-;; Headers
+;; HeaderValues
+
+(extend-protocol HeaderValues
+  java.util.Collection
+  (add-header-values [this header-name builder]
+    (let [add-header-rf #(add-header-values %2 header-name %)]
+      (reduce add-header-rf builder this)))
+  String
+  (add-header-values [this header-name builder]
+    (.header ^HttpRequest$Builder builder header-name this)))
 
 (defn add-headers-from-key-values
   [builder k values]
-  (let [header-name   (name k)
-        add-header-rf #(.header ^HttpRequest$Builder % header-name %2)]
-    (reduce add-header-rf builder values)))
+  (add-header-values values (name k) builder))
+
+;; Headers
 
 (extend-protocol Headers
   java.util.Map
