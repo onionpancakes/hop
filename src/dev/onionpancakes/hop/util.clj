@@ -25,6 +25,13 @@
   (when-let [parse (and s (re-find parse-media-type-regex s))]
     (str (second parse) "/" (nth parse 2))))
 
+(def parse-media-type-function
+  (reify java.util.function.Function
+    (apply [_ s]
+      (parse-media-type s))))
+
+;; Character Encoding
+
 (def parse-character-encoding-regex
   ;; Parses charset as #" charset = <encoding> ".
   #"(?i)charset\s*+=\s*+(\S++)")
@@ -34,6 +41,11 @@
   [s]
   (when s
     (second (re-find parse-character-encoding-regex s))))
+
+(def parse-character-encoding-function
+  (reify java.util.function.Function
+    (apply [_ s]
+      (parse-character-encoding s))))
 
 ;; Decompress
 

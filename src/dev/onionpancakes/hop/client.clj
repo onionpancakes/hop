@@ -48,7 +48,7 @@
   ([^HttpClient client request body-handler]
    (-> client
        (.send (request/request request) (response/body-handler body-handler))
-       (response/response-map))))
+       (response/response-proxy))))
 
 (defn send
   "Send request with default client."
@@ -64,7 +64,7 @@
   ([^HttpClient client request body-handler]
    (-> client
        (.sendAsync (request/request request) (response/body-handler body-handler))
-       (.thenApply response/response-map-function))))
+       (.thenApply response/response-proxy-function))))
 
 (defn ^CompletableFuture send-async
   "Send async request with default client, returning a CompletableFuture."

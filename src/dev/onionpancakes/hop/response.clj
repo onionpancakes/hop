@@ -1,20 +1,74 @@
 (ns dev.onionpancakes.hop.response
   (:require [dev.onionpancakes.hop.keys :as k]
-            [dev.onionpancakes.hop.datafy :as datafy])
-  (:import [java.net.http HttpResponse]))
+            [dev.onionpancakes.hop.util :as util])
+  (:import [java.net.http HttpRequest HttpResponse]))
 
-;; Response
+(defn lookup-response
+  [^HttpResponse this k not-found]
+  (case k
+    :request            (.request this)
+    :uri                (.uri this)
+    :version            (.version this)
+    :status             (.statusCode this)
+    :headers            (.map (.headers this))
+    :body               (.body this)
+    :content-encoding   (.. this
+                            (headers)
+                            (firstValue "content-encoding")
+                            (orElse not-found))
+    :content-type       (.. this
+                            (headers)
+                            (firstValue "content-type")
+                            (orElse not-found))
+    :media-type         (.. this
+                            (headers)
+                            (firstValue "content-type")
+                            (map util/parse-media-type-function)
+                            (orElse not-found))
+    :character-encoding (.. this
+                            (headers)
+                            (firstValue "content-type")
+                            (map util/parse-character-encoding-function)
+                            (orElse not-found))
+    :ssl-session        (.. this (sslSession) (orElse not-found))
+    :previous-response  (.. this (previousResponse) (orElse not-found))
+    not-found))
+
+(def lookup-response-keys
+  [:request :uri :version :status :headers :body
+   :content-encoding :content-type :media-type :character-encoding
+   :ssl-session :previous-version])
 
 (defn response-map
-  "Return response map from HttpResponse object."
-  [^HttpResponse response]
-  (datafy/HttpResponse->map response))
+  [response]
+  (let [map-entry-fn #(when-let [value (lookup-response response % nil)]
+                        (clojure.lang.MapEntry. % value))]
+    (into {} (keep map-entry-fn) lookup-response-keys)))
 
-(def ^java.util.function.Function response-map-function
-  "Function which returns response map from HttpResponse object."
+(deftype ResponseProxy [response]
+  clojure.lang.ILookup
+  (valAt [this k]
+    (.valAt this k nil))
+  (valAt [this k not-found]
+    (lookup-response response k not-found))
+  clojure.lang.IFn
+  (invoke [this k]
+    (.valAt this k nil))
+  (invoke [this k not-found]
+    (.valAt this k not-found))
+  Object
+  (toString [this]
+    (str (response-map response))))
+
+(defn response-proxy
+  [response]
+  (ResponseProxy. response))
+
+(def ^java.util.function.Function response-proxy-function
+  "Function which returns response proxy from HttpResponse object."
   (reify java.util.function.Function
     (apply [_ response]
-      (response-map response))))
+      (response-proxy response))))
 
 ;; BodyHandler
 
