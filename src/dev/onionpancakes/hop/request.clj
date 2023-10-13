@@ -6,50 +6,50 @@
 ;; Protocols
 
 (defprotocol URI
-  (to-uri [this] "Return this as URI."))
+  (uri [this] "Return this as URI."))
 
 (defprotocol Body
-  (to-body-publisher [this] "Return this as BodyPublisher."))
+  (body-publisher [this] "Return this as BodyPublisher."))
 
 (defprotocol Headers
   (set-headers [this builder] "Set request builder headers."))
 
 (defprotocol Request
-  (to-request [this] "Return this as HttpRequest."))
+  (^HttpRequest request [this] "Return this as HttpRequest."))
 
 ;; URI
 
 (extend-protocol URI
   String
-  (to-uri [this] (java.net.URI. this))
+  (uri [this] (java.net.URI. this))
   java.net.URL
-  (to-uri [this] (.toURI this))
+  (uri [this] (.toURI this))
   java.net.URI
-  (to-uri [this] this))
+  (uri [this] this))
 
 ;; Body
 
 (extend-protocol Body
   (Class/forName "[B")
-  (to-body-publisher [this]
+  (body-publisher [this]
     (HttpRequest$BodyPublishers/ofByteArray this))
   String
-  (to-body-publisher [this]
+  (body-publisher [this]
     (HttpRequest$BodyPublishers/ofString this))
   java.nio.file.Path
-  (to-body-publisher [this]
+  (body-publisher [this]
     (HttpRequest$BodyPublishers/ofFile this))
   java.io.File
-  (to-body-publisher [this]
+  (body-publisher [this]
     (HttpRequest$BodyPublishers/ofFile (.toPath this)))
   java.util.concurrent.Flow$Publisher
-  (to-body-publisher [this]
+  (body-publisher [this]
     (HttpRequest$BodyPublishers/fromPublisher this))
-  nil
-  (to-body-publisher [_]
-    (HttpRequest$BodyPublishers/noBody))
   java.net.http.HttpRequest$BodyPublisher
-  (to-body-publisher [this] this))
+  (body-publisher [this] this)
+  nil
+  (body-publisher [_]
+    (HttpRequest$BodyPublishers/noBody)))
 
 ;; Headers
 
@@ -76,41 +76,36 @@
 (defn set-request-builder-from-map
   "Sets HttpRequest Builder."
   ^HttpRequest$Builder
-  [^HttpRequest$Builder builder {:keys [uri method headers body
-                                        timeout version expect-continue]}]
+  [^HttpRequest$Builder builder m]
   (cond-> builder
-    (some? uri)             (.uri (to-uri uri))
-    (some? method)          (.method (upper-case (name method)) (to-body-publisher body))
-    (some? headers)         (set-request-builder-headers headers)
-    (some? timeout)         (.timeout timeout)
-    (some? version)         (.version (k/http-client-version version version))
-    (some? expect-continue) (.expectContinue expect-continue)))
+    (contains? m :uri)             (.uri (uri (:uri m)))
+    (contains? m :method)          (.method (upper-case (name (:method m))) 
+                                            (body-publisher (:body m)))
+    (contains? m :headers)         (set-request-builder-headers (:headers m))
+    (contains? m :timeout)         (.timeout (:timeout m))
+    (contains? m :version)         (.version (k/http-client-version (:version m) (:version m)))
+    (contains? m :expect-continue) (.expectContinue (:expect-continue m))))
 
 (extend-protocol Request
   java.util.Map
-  (to-request [this]
+  (request [this]
     (-> (HttpRequest/newBuilder)
         (set-request-builder-from-map this)
         (.build)))
   String
-  (to-request [this]
+  (request [this]
     (.. (HttpRequest/newBuilder)
-        (uri (to-uri this))
+        (uri (uri this))
         (build)))
   java.net.URI
-  (to-request [this]
+  (request [this]
     (.. (HttpRequest/newBuilder)
         (uri this)
         (build)))
   java.net.URL
-  (to-request [this]
+  (request [this]
     (.. (HttpRequest/newBuilder)
-        (uri (to-uri this))
+        (uri (uri this))
         (build)))
   HttpRequest
-  (to-request [this] this))
-
-(defn request
-  ^HttpRequest
-  [req]
-  (to-request req))
+  (request [this] this))

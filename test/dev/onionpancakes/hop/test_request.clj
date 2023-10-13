@@ -30,8 +30,7 @@
     :HEAD "HEAD"
     :get  "GET"
     :post "POST"
-    :head "HEAD"
-    nil   "GET"))
+    :head "HEAD"))
 
 (deftest test-request-map-headers
   (are [headers expected] (let [req {:uri     "http://example.com"
@@ -61,7 +60,6 @@
                                   :timeout tout}
                              obj (request/request req)]
                          (= (.. obj (timeout) (orElse nil)) expected))
-    nil                              nil
     (java.time.Duration/ofMinutes 5) (java.time.Duration/ofMinutes 5)))
 
 (deftest test-request-map-version
@@ -69,7 +67,6 @@
                                  :version ver}
                             obj (request/request req)]
                         (= (.. obj (version) (orElse nil)) expected))
-    nil                         nil
     :http                       HttpClient$Version/HTTP_1_1
     :http2                      HttpClient$Version/HTTP_2
     HttpClient$Version/HTTP_1_1 HttpClient$Version/HTTP_1_1
@@ -80,6 +77,5 @@
                                 :expect-continue ec}
                             obj (request/request req)]
                         (= (.. obj (expectContinue)) expected))
-    nil   false
     false false
     true  true))
