@@ -68,7 +68,7 @@
   (add-header-values [this header-name builder]
     (.header ^HttpRequest$Builder builder header-name this)))
 
-(defn add-headers-from-key-values
+(defn add-request-builder-header-values
   [builder k values]
   (add-header-values values (name k) builder))
 
@@ -77,7 +77,7 @@
 (extend-protocol Headers
   java.util.Map
   (set-headers [this builder]
-    (reduce-kv add-headers-from-key-values builder this))
+    (reduce-kv add-request-builder-header-values builder this))
   nil
   (set-headers [_ builder] builder))
 
