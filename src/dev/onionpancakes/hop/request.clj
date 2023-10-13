@@ -9,16 +9,16 @@
 ;; Protocols
 
 (defprotocol URI
-  (uri [this] "Return this as URI."))
+  (uri [this] "Return as URI."))
 
 (defprotocol Body
-  (body-publisher [this] "Return this as BodyPublisher."))
+  (body-publisher [this] "Return as BodyPublisher."))
 
 (defprotocol Headers
   (set-headers [this builder] "Set request builder headers."))
 
 (defprotocol Request
-  (^HttpRequest request [this] "Return this as HttpRequest."))
+  (^HttpRequest request [this] "Return as HttpRequest."))
 
 ;; URI
 
@@ -57,8 +57,8 @@
 ;; Headers
 
 (defn add-headers-from-key-values
-  [builder key values]
-  (let [header-name   (name key)
+  [builder k values]
+  (let [header-name   (name k)
         add-header-rf #(.header ^HttpRequest$Builder % header-name %2)]
     (reduce add-header-rf builder values)))
 
