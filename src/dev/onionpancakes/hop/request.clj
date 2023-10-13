@@ -1,7 +1,10 @@
 (ns dev.onionpancakes.hop.request
   (:require [dev.onionpancakes.hop.keys :as k]
             [clojure.string :refer [upper-case]])
-  (:import [java.net.http HttpRequest HttpRequest$Builder HttpRequest$BodyPublishers]))
+  (:import [java.net.http
+            HttpRequest
+            HttpRequest$Builder
+            HttpRequest$BodyPublishers]))
 
 ;; Protocols
 
