@@ -1,5 +1,6 @@
 (ns dev.onionpancakes.hop.test-response
   (:require [clojure.test :refer [deftest is are]]
+            [dev.onionpancakes.hop.headers :as headers]
             [dev.onionpancakes.hop.request :as request]
             [dev.onionpancakes.hop.response :as response])
   (:import [java.net.http HttpResponse HttpHeaders HttpRequest
@@ -12,10 +13,8 @@
     (body [this]
       "Body")
     (headers [this]
-      (-> {"content-encoding" ["gzip"]
-           "content-type"     ["text/plain;charset=utf-8"]}
-          (HttpHeaders/of (reify BiPredicate
-                            (test [_ _ _] true)))))
+      (headers/from-map {"content-encoding" ["gzip"]
+                         "content-type"     ["text/plain;charset=utf-8"]}))
     (previousResponse [this]
       (Optional/ofNullable nil))
     (request [this]

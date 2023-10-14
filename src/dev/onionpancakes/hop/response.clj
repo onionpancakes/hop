@@ -43,12 +43,12 @@
       :media-type         (.. response
                               (headers)
                               (firstValue "content-type")
-                              (map util/parse-media-type-function)
+                              (map h/parse-media-type-function)
                               (orElse nil))
       :character-encoding (.. response
                               (headers)
                               (firstValue "content-type")
-                              (map util/parse-character-encoding-function)
+                              (map h/parse-character-encoding-function)
                               (orElse nil))
       :ssl-session        (.. response (sslSession) (orElse nil))
       :previous-response  (.. response
@@ -72,7 +72,7 @@
 
 (defn response-proxy
   [^HttpResponse response]
-  (let [headers (delay (h/headers-map (.headers response)))]
+  (let [headers (delay (h/to-map (.headers response)))]
     (ResponseProxy. response headers)))
 
 (def ^java.util.function.Function response-proxy-function

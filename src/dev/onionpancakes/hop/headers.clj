@@ -51,9 +51,17 @@
 
 ;; Headers
 
-(def headers-map-xf
+(def to-map-xf
   (map (juxt key (comp vec val))))
 
-(defn headers-map
+(defn to-map
   [^HttpHeaders headers]
   (into {} headers-map-xf (.map headers)))
+
+(def from-map-bi-predicate
+  (reify java.util.function.BiPredicate
+    (test [_ _ _] true)))
+
+(defn from-map
+  [m]
+  (HttpHeaders/of m from-map-bi-predicate))
