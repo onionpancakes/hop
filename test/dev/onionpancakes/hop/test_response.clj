@@ -68,7 +68,12 @@
     (into {} example-response-proxy)           example-response-map
     (zipmap (keys example-response-proxy)
             (vals example-response-proxy))     example-response-map
+    (empty? example-response-proxy)            false
     (get example-response-proxy :status)       200
+    (get-in example-response-proxy
+            [:headers "content-encoding" 0])   "gzip"
     (contains? example-response-proxy :status) true
     (find example-response-proxy :status)      [:status 200]
-    (count example-response-proxy)             (count example-response-map)))
+    (count example-response-proxy)             (count example-response-map)
+    (merge {:foo :bar} example-response-proxy) (merge {:foo :bar}
+                                                      example-response-map)))
