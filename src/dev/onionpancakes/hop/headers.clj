@@ -56,7 +56,7 @@
 
 (defn to-map
   [^HttpHeaders headers]
-  (into {} headers-map-xf (.map headers)))
+  (into {} to-map-xf (.map headers)))
 
 (def from-map-bi-predicate
   (reify java.util.function.BiPredicate
