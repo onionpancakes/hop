@@ -5,67 +5,59 @@
 
 (declare response-proxy-function)
 
-(defn lookup-response
-  [^HttpResponse this k not-found]
-  (case k
-    :request            (.request this)
-    :uri                (.uri this)
-    :version            (.version this)
-    :status             (.statusCode this)
-    :headers            (.map (.headers this))
-    :body               (.body this)
-    :content-encoding   (.. this
-                            (headers)
-                            (firstValue "content-encoding")
-                            (orElse not-found))
-    :content-type       (.. this
-                            (headers)
-                            (firstValue "content-type")
-                            (orElse not-found))
-    :media-type         (.. this
-                            (headers)
-                            (firstValue "content-type")
-                            (map util/parse-media-type-function)
-                            (orElse not-found))
-    :character-encoding (.. this
-                            (headers)
-                            (firstValue "content-type")
-                            (map util/parse-character-encoding-function)
-                            (orElse not-found))
-    :ssl-session        (.. this (sslSession) (orElse not-found))
-    :previous-response  (.. this
-                            (previousResponse)
-                            (map response-proxy-function)
-                            (orElse not-found))
-    not-found))
-
-(def response-lookup-keys
+(def response-proxy-keys
   [:request :uri :version :status :headers :body
    :content-encoding :content-type :media-type :character-encoding
    :ssl-session :previous-response])
 
-(defn response-entries
-  [response]
-  (let [map-entry-fn #(when-let [value (lookup-response response % nil)]
-                        (clojure.lang.MapEntry/create % value))]
-    (eduction (keep map-entry-fn) response-lookup-keys)))
-
-(deftype ResponseProxy [response]
+(deftype ResponseProxy [^HttpResponse response]
   java.util.Map
   (clear [this]
     (throw (UnsupportedOperationException.)))
   (containsKey [this k]
-    (some? (lookup-response response k nil)))
+    (some? (.get this k)))
   (containsValue [this value]
-    (-> (into #{} (map val) (response-entries response))
+    (-> (into #{} (keep #(.get this %)) response-proxy-keys)
         (contains? value)))
   (entrySet [this]
-    (set (response-entries response)))
+    (let [create-map-entry #(when-some [value (.get this %)]
+                              (clojure.lang.MapEntry. % value))]
+      (into #{} (keep create-map-entry) response-proxy-keys)))
   (get [this k]
-    (lookup-response response k nil))
+    (case k
+      :request            (.request response)
+      :uri                (.uri response)
+      :version            (.version response)
+      :status             (.statusCode response)
+      :headers            (.map (.headers response))
+      :body               (.body response)
+      :content-encoding   (.. response
+                              (headers)
+                              (firstValue "content-encoding")
+                              (orElse nil))
+      :content-type       (.. response
+                              (headers)
+                              (firstValue "content-type")
+                              (orElse nil))
+      :media-type         (.. response
+                              (headers)
+                              (firstValue "content-type")
+                              (map util/parse-media-type-function)
+                              (orElse nil))
+      :character-encoding (.. response
+                              (headers)
+                              (firstValue "content-type")
+                              (map util/parse-character-encoding-function)
+                              (orElse nil))
+      :ssl-session        (.. response (sslSession) (orElse nil))
+      :previous-response  (.. response
+                              (previousResponse)
+                              (map response-proxy-function)
+                              (orElse nil))
+      nil))
   (isEmpty [this] false)
   (keySet [this]
-    (into #{} (map key) (response-entries response)))
+    (set response-proxy-keys))
   (put [this k value]
     (throw (UnsupportedOperationException.)))
   (putAll [this m]
@@ -73,9 +65,9 @@
   (remove [this k]
     (throw (UnsupportedOperationException.)))
   (size [this]
-    (count (vec (response-entries response))))
+    (count (filter #(.containsKey this %) response-proxy-keys)))
   (values [this]
-    (mapv val (response-entries response))))
+    (into [] (keep #(.get this %)) response-proxy-keys)))
 
 (defn response-proxy
   [response]
