@@ -2,55 +2,73 @@
   (:require [clojure.test :refer [deftest is are]]
             [dev.onionpancakes.hop.request :as request]
             [dev.onionpancakes.hop.response :as response])
-  (:import [java.util Optional]
-           [java.net.http HttpResponse HttpHeaders HttpRequest
-            HttpClient$Version]))
+  (:import [java.net.http HttpResponse HttpHeaders HttpRequest
+            HttpClient$Version]
+           [java.util Optional]
+           [java.util.function BiPredicate]))
 
-(defn make-http-headers
-  [m]
-  (HttpHeaders/of m (reify java.util.function.BiPredicate
-                      (test [this t u] true))))
-
-(defn make-response
-  [m]
+(def example-response-object
   (reify HttpResponse
     (body [this]
-      (:body m))
+      "Body")
     (headers [this]
-      (:headers m))
+      (-> {"content-encoding" ["gzip"]
+           "content-type"     ["text/plain;charset=utf-8"]}
+          (HttpHeaders/of (reify BiPredicate
+                            (test [_ _ _] true)))))
     (previousResponse [this]
-      (Optional/ofNullable (:previous-request m)))
+      (Optional/ofNullable nil))
     (request [this]
-      (:request m))
+      (request/request "http://www.example.com"))
     (sslSession [this]
-      (Optional/ofNullable (:ssl-session m)))
+      (Optional/ofNullable nil))
     (statusCode [this]
-      (:status m))
+      (int 200))
     (uri [this]
-      (:uri m))
+      (request/uri "http://www.example.com"))
     (version [this]
-      (:version m))))
+      HttpClient$Version/HTTP_1_1)))
 
-(deftest test-response-proxy
-  (let [headers  {"content-type"     ["text/html;charset=utf-8"]
-                  "content-encoding" ["gzip"]}
-        resp-obj (make-response {:request (request/request "http://example.com")
-                                 :uri     (java.net.URI. "http://example.com")
-                                 :status  200
-                                 :headers (make-http-headers headers)
-                                 :body    "foo"
-                                 :version HttpClient$Version/HTTP_1_1})
-        resp-map (response/response-proxy resp-obj)]
-    (is (instance? HttpRequest (:request resp-map)))
-    (is (= (:uri resp-map) (java.net.URI. "http://example.com")))
-    (is (= (:status resp-map) 200))
-    (is (= (:headers resp-map) {"content-type"     ["text/html;charset=utf-8"]
-                                "content-encoding" ["gzip"]}))
-    (is (= (:body resp-map) "foo"))
-    (is (= (:version resp-map) HttpClient$Version/HTTP_1_1))
-    (is (= (:content-encoding resp-map) "gzip"))
-    (is (= (:content-type resp-map) "text/html;charset=utf-8"))
-    (is (= (:media-type resp-map) "text/html"))
-    (is (= (:character-encoding resp-map) "utf-8"))
-    ;; Test ssl-session?
-    ))
+(def example-response-proxy
+  (response/response-proxy example-response-object))
+
+(def example-response-map
+  {:request            (request/request "http://www.example.com")
+   :uri                (request/uri "http://www.example.com")
+   :version            HttpClient$Version/HTTP_1_1
+   :status             200
+   :headers            {"content-encoding" ["gzip"]
+                        "content-type"     ["text/plain;charset=utf-8"]}
+   :body               "Body"
+   :content-encoding   "gzip"
+   :content-type       "text/plain;charset=utf-8"
+   :media-type         "text/plain"
+   :character-encoding "utf-8"})
+
+(deftest test-response-proxy-lookup
+  (are [kw expected] (= (kw example-response-proxy) expected)
+    :request            (request/request "http://www.example.com")
+    :uri                (request/uri "http://www.example.com")
+    :version            HttpClient$Version/HTTP_1_1
+    :status             200
+    :headers            {"content-encoding" ["gzip"]
+                         "content-type"     ["text/plain;charset=utf-8"]}
+    :body               "Body"
+    :content-encoding   "gzip"
+    :content-type       "text/plain;charset=utf-8"
+    :media-type         "text/plain"
+    :character-encoding "utf-8"
+    :ssl-session        nil
+    :previous-response  nil
+    :not-a-key          nil))
+
+(deftest test-response-proxy-clj
+  (are [value expected] (= value expected)
+    example-response-proxy                     example-response-map
+    (into {} example-response-proxy)           example-response-map
+    (zipmap (keys example-response-proxy)
+            (vals example-response-proxy))     example-response-map
+    (get example-response-proxy :status)       200
+    (contains? example-response-proxy :status) true
+    (find example-response-proxy :status)      [:status 200]
+    (count example-response-proxy)             (count example-response-map)))
