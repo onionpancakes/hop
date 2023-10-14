@@ -1,5 +1,6 @@
 (ns dev.onionpancakes.hop.response
   (:require [dev.onionpancakes.hop.keywords :as k]
+            [dev.onionpancakes.hop.headers :as h]
             [dev.onionpancakes.hop.util :as util])
   (:import [java.net.http HttpRequest HttpResponse]))
 
@@ -10,7 +11,7 @@
    :content-encoding :content-type :media-type :character-encoding
    :ssl-session :previous-response])
 
-(deftype ResponseProxy [^HttpResponse response]
+(deftype ResponseProxy [^HttpResponse response headers]
   java.util.Map
   (clear [this]
     (throw (UnsupportedOperationException.)))
@@ -29,7 +30,7 @@
       :uri                (.uri response)
       :version            (.version response)
       :status             (.statusCode response)
-      :headers            (.map (.headers response))
+      :headers            (deref headers)
       :body               (.body response)
       :content-encoding   (.. response
                               (headers)
@@ -70,8 +71,9 @@
     (into [] (keep #(.get this %)) response-proxy-keys)))
 
 (defn response-proxy
-  [response]
-  (ResponseProxy. response))
+  [^HttpResponse response]
+  (let [headers (delay (h/headers-map (.headers response)))]
+    (ResponseProxy. response headers)))
 
 (def ^java.util.function.Function response-proxy-function
   "Function which returns response proxy from HttpResponse object."
