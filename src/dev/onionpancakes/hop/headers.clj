@@ -22,8 +22,9 @@
 (defn parse-media-type
   "Parse the mimetype from a content-type string. Truncates all whitespace."
   [s]
-  (when-let [parse (and s (re-find parse-media-type-regex s))]
-    (str (second parse) "/" (nth parse 2))))
+  (let [m (re-matcher parse-media-type-regex s)]
+    (when (.find m)
+      (str (.group m 1) "/" (.group m 2)))))
 
 (def parse-media-type-function
   (reify java.util.function.Function
@@ -39,8 +40,9 @@
 (defn parse-character-encoding
   "Parse the character encoding from a content-type string."
   [s]
-  (when s
-    (second (re-find parse-character-encoding-regex s))))
+  (let [m (re-matcher parse-character-encoding-regex s)]
+    (when (.find m)
+      (.group m 1))))
 
 (def parse-character-encoding-function
   (reify java.util.function.Function
