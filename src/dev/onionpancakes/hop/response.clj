@@ -18,8 +18,10 @@
   (containsKey [this k]
     (some? (.get this k)))
   (containsValue [this value]
-    (-> (into #{} (keep #(.get this %)) response-proxy-keys)
-        (contains? value)))
+    (->> response-proxy-keys
+         (keep (comp #{value} #(.get this %)))
+         (first)
+         (some?)))
   (entrySet [this]
     (let [create-map-entry #(when-some [value (.get this %)]
                               (clojure.lang.MapEntry. % value))]
@@ -66,7 +68,7 @@
   (remove [this k]
     (throw (UnsupportedOperationException.)))
   (size [this]
-    (count (filter #(.containsKey this %) response-proxy-keys)))
+    (count (keep #(.get this %) response-proxy-keys)))
   (values [this]
     (into [] (keep #(.get this %)) response-proxy-keys)))
 
