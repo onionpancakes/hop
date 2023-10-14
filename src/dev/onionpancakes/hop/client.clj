@@ -3,36 +3,34 @@
   (:require [dev.onionpancakes.hop.keywords :as k]
             [dev.onionpancakes.hop.request :as request]
             [dev.onionpancakes.hop.response :as response])
-  (:import [java.net.http HttpClient]
+  (:import [java.net.http HttpClient HttpClient$Builder]
            [java.util.concurrent CompletableFuture]))
 
 ;; Client
 
+(defn set-client-builder-from-map
+  ^HttpClient$Builder
+  [^HttpClient$Builder builder m]
+  (cond-> builder
+    (contains? m :authenticator)    (.authenticator (:authenticator m))
+    (contains? m :connect-timeout)  (.connectTimeout (:connect-timeout m))
+    (contains? m :cookie-handler)   (.cookieHandler (:cookie-handler m))
+    (contains? m :executor)         (.executor (:executor m))
+    (contains? m :follow-redirects) (.followRedirects (k/redirect (:follow-redirects m)
+                                                                  (:follow-redirects m)))
+    (contains? m :priority)         (.priority (:priority m))
+    (contains? m :proxy)            (.proxy (k/proxy-selector (:proxy m) (:proxy m)))
+    (contains? m :ssl-context)      (.sslContext (:ssl-context m))
+    (contains? m :ssl-parameters)   (.sslParameters (:ssl-parameters m))
+    (contains? m :version)          (.version (k/version (:version m) (:version m)))))
+
 (defn ^HttpClient client
   "Creates a HttpClient."
   ([] (client nil))
-  ([{:keys [authenticator
-            connect-timeout
-            cookie-handler
-            executor
-            follow-redirects
-            priority
-            proxy
-            ssl-context
-            ssl-parameters
-            version]}]
-   (cond-> (HttpClient/newBuilder)
-     authenticator    (.authenticator authenticator)
-     connect-timeout  (.connectTimeout connect-timeout)
-     cookie-handler   (.cookieHandler cookie-handler)
-     executor         (.executor executor)
-     follow-redirects (.followRedirects (k/redirect follow-redirects follow-redirects))
-     priority         (.priority priority)
-     proxy            (.proxy (k/proxy-selector proxy proxy))
-     ssl-context      (.sslContext ssl-context)
-     ssl-parameters   (.sslParameters ssl-parameters)
-     version          (.version (k/version version version))
-     true             (.build))))
+  ([m]
+   (-> (HttpClient/newBuilder)
+       (set-client-builder-from-map m)
+       (.build))))
 
 ;; Send
 
