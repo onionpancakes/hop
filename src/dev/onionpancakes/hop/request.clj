@@ -66,7 +66,9 @@
       (reduce add-header-rf builder this)))
   String
   (add-header-values [this header-name builder]
-    (.header ^HttpRequest$Builder builder header-name this)))
+    (.header ^HttpRequest$Builder builder header-name this))
+  nil
+  (add-header-values [_ _ builder] builder))
 
 (defn add-request-builder-header-values
   [builder k values]
