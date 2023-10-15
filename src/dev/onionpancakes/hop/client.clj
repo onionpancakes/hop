@@ -34,10 +34,10 @@
 
 ;; Send
 
-(def default-client
-  "Delayed default instance of HttpClient."
-  (delay (client {:connect-timeout  (java.time.Duration/ofMinutes 5)
-                  :follow-redirects :normal})))
+(def ^:dynamic *client*
+  "Default java.net.http.HttpClient used for send and send-async."
+  (client {:connect-timeout  (java.time.Duration/ofMinutes 5)
+           :follow-redirects :normal}))
 
 (defn send-with
   "Send request with given client."
@@ -51,9 +51,9 @@
 (defn send
   "Send request with default client."
   ([request]
-   (send-with @default-client request))
+   (send-with *client* request))
   ([request body-handler]
-   (send-with @default-client request body-handler)))
+   (send-with *client* request body-handler)))
 
 (defn ^CompletableFuture send-async-with
   "Send async request with given client, returning a CompletableFuture."
@@ -67,6 +67,6 @@
 (defn ^CompletableFuture send-async
   "Send async request with default client, returning a CompletableFuture."
   ([request]
-   (send-async-with @default-client request))
+   (send-async-with *client* request))
   ([request body-handler]
-   (send-async-with @default-client request body-handler)))
+   (send-async-with *client* request body-handler)))
