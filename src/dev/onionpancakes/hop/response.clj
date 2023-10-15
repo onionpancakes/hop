@@ -60,7 +60,7 @@
       nil))
   (isEmpty [this] false)
   (keySet [this]
-    (set response-proxy-keys))
+    (into #{} (filter #(.get this %)) response-proxy-keys))
   (put [this k value]
     (throw (UnsupportedOperationException.)))
   (putAll [this m]

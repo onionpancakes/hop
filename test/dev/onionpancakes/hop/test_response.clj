@@ -28,10 +28,10 @@
     (version [this]
       HttpClient$Version/HTTP_1_1)))
 
-(def example-response-proxy
+(def ^java.util.Map example-response-proxy
   (response/response-proxy example-response-object))
 
-(def example-response-map
+(def ^java.util.Map example-response-map
   {:request            (request/request "http://www.example.com")
    :uri                (request/uri "http://www.example.com")
    :version            HttpClient$Version/HTTP_1_1
@@ -76,3 +76,15 @@
     (count example-response-proxy)             (count example-response-map)
     (merge {:foo :bar} example-response-proxy) (merge {:foo :bar}
                                                       example-response-map)))
+
+(deftest test-response-proxy-java
+  (are [value expected] (= value expected)
+    (.containsKey example-response-proxy :status) true
+    (.containsValue example-response-proxy 200)   true
+    (.containsValue example-response-proxy nil)   false
+    (.entrySet example-response-proxy)            (.entrySet example-response-map)
+    (.get example-response-proxy :status)         200
+    (.isEmpty example-response-proxy)             false
+    (.keySet example-response-proxy)              (.keySet example-response-map)
+    (.size example-response-proxy)                (.size example-response-map)
+    (set (.values example-response-proxy))        (set (.values example-response-map))))
