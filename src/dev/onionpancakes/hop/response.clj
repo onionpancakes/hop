@@ -1,8 +1,7 @@
 (ns dev.onionpancakes.hop.response
   (:require [dev.onionpancakes.hop.keywords :as k]
             [dev.onionpancakes.hop.headers :as h]
-            [dev.onionpancakes.hop.parse :as p]
-            [dev.onionpancakes.hop.util :as util])
+            [dev.onionpancakes.hop.parse :as p])
   (:import [java.net.http HttpRequest HttpResponse]))
 
 (declare response-proxy-function)
