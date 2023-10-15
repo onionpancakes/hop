@@ -1,6 +1,7 @@
 (ns dev.onionpancakes.hop.response
   (:require [dev.onionpancakes.hop.keywords :as k]
             [dev.onionpancakes.hop.headers :as h]
+            [dev.onionpancakes.hop.parse :as p]
             [dev.onionpancakes.hop.util :as util])
   (:import [java.net.http HttpRequest HttpResponse]))
 
@@ -45,12 +46,12 @@
       :media-type         (.. response
                               (headers)
                               (firstValue "content-type")
-                              (map h/parse-media-type-function)
+                              (map p/parse-media-type-function)
                               (orElse nil))
       :character-encoding (.. response
                               (headers)
                               (firstValue "content-type")
-                              (map h/parse-character-encoding-function)
+                              (map p/parse-character-encoding-function)
                               (orElse nil))
       :ssl-session        (.. response (sslSession) (orElse nil))
       :previous-response  (.. response
