@@ -50,6 +50,8 @@
     {"Foo" "Bar"}   {"Foo" ["Bar"]}
     {"Foo" ["Bar"]} {"Foo" ["Bar"]}
     {:Foo ["Bar"]}  {"Foo" ["Bar"]}
+    {"Foo" 0}       {"Foo" ["0"]}
+    {"Foo" [0]}     {"Foo" ["0"]}
 
     ;; Mixed
     {:Foo ["Bar" "Baz"] :Qux "Mux"} {"Foo" ["Bar" "Baz"]

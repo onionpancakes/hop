@@ -64,6 +64,9 @@
   String
   (add-header-values [this header-name builder]
     (.header ^HttpRequest$Builder builder header-name this))
+  Object
+  (add-header-values [this header-name builder]
+    (.header ^HttpRequest$Builder builder header-name (str this)))
   nil
   (add-header-values [_ _ builder] builder))
 
