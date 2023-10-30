@@ -102,20 +102,9 @@
     (-> (HttpRequest/newBuilder)
         (set-request-builder-from-map this)
         (.build)))
-  String
+  Object
   (request [this]
-    (.. (HttpRequest/newBuilder)
-        (uri (uri this))
-        (build)))
-  java.net.URI
-  (request [this]
-    (.. (HttpRequest/newBuilder)
-        (uri this)
-        (build)))
-  java.net.URL
-  (request [this]
-    (.. (HttpRequest/newBuilder)
-        (uri (uri this))
+    (.. (HttpRequest/newBuilder (uri this))
         (build)))
   HttpRequest
   (request [this] this))
