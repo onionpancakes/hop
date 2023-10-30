@@ -17,9 +17,6 @@
 (defprotocol HeaderValues
   (add-header-values [this header-name builder] "Add request builder header values."))
 
-(defprotocol Headers
-  (set-headers [this builder] "Set request builder headers."))
-
 (defprotocol Request
   (^HttpRequest request [this] "Return as HttpRequest."))
 
@@ -76,17 +73,10 @@
 
 ;; Headers
 
-(extend-protocol Headers
-  java.util.Map
-  (set-headers [this builder]
-    (reduce-kv add-request-builder-header-values builder this))
-  nil
-  (set-headers [_ builder] builder))
-
-(defn set-request-builder-headers
+(defn add-request-builder-headers
   ^HttpRequest$Builder
   [builder headers]
-  (set-headers headers builder))
+  (reduce-kv add-request-builder-header-values builder headers))
 
 ;; Request
 
@@ -98,7 +88,7 @@
     (contains? m :uri)             (.uri (uri (:uri m)))
     (contains? m :method)          (.method (upper-case (name (:method m))) 
                                             (body-publisher (:body m)))
-    (contains? m :headers)         (set-request-builder-headers (:headers m))
+    (contains? m :headers)         (add-request-builder-headers (:headers m))
     (contains? m :timeout)         (.timeout (:timeout m))
     (contains? m :version)         (.version (k/version (:version m) (:version m)))
     (contains? m :expect-continue) (.expectContinue (:expect-continue m))))
