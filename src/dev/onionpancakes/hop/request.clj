@@ -14,8 +14,8 @@
 (defprotocol Body
   (body-publisher [this] "Return as BodyPublisher."))
 
-(defprotocol HeaderValues
-  (add-header-values [this header-name builder] "Add request builder header values."))
+(defprotocol HeaderValue
+  (add-header-to-request-builder [this builder header-name] "Adds header to request builder."))
 
 (defprotocol Request
   (^HttpRequest request [this] "Return as HttpRequest."))
@@ -54,32 +54,30 @@
   (body-publisher [_]
     (HttpRequest$BodyPublishers/noBody)))
 
-;; HeaderValues
+;; Headers
 
-(extend-protocol HeaderValues
+(extend-protocol HeaderValue
   java.util.Collection
-  (add-header-values [this header-name builder]
-    (let [add-header-rf #(add-header-values %2 header-name %)]
+  (add-header-to-request-builder [this builder header-name]
+    (let [add-header-rf #(add-header-to-request-builder %2 % header-name)]
       (reduce add-header-rf builder this)))
   String
-  (add-header-values [this header-name builder]
+  (add-header-to-request-builder [this builder header-name]
     (.header ^HttpRequest$Builder builder header-name this))
   Object
-  (add-header-values [this header-name builder]
+  (add-header-to-request-builder [this builder header-name]
     (.header ^HttpRequest$Builder builder header-name (str this)))
   nil
-  (add-header-values [_ _ builder] builder))
+  (add-header-to-request-builder [_ builder _] builder))
 
-(defn add-request-builder-header-values
-  [builder k values]
-  (add-header-values values (name k) builder))
-
-;; Headers
+(defn add-request-builder-header
+  [builder k value]
+  (add-header-to-request-builder value builder (name k)))
 
 (defn add-request-builder-headers
   ^HttpRequest$Builder
   [builder headers]
-  (reduce-kv add-request-builder-header-values builder headers))
+  (reduce-kv add-request-builder-header builder headers))
 
 ;; Request
 
