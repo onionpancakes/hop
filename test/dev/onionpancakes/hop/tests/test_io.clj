@@ -1,4 +1,4 @@
-(ns dev.onionpancakes.hop.test-io
+(ns dev.onionpancakes.hop.tests.test-io
   (:require [clojure.test :refer [deftest is are]]
             [dev.onionpancakes.hop.io :as io])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream]

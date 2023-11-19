@@ -1,4 +1,4 @@
-(ns dev.onionpancakes.hop.test-parse
+(ns dev.onionpancakes.hop.tests.test-parse
   (:require [clojure.test :refer [deftest are]]
             [dev.onionpancakes.hop.parse :as p]))
 

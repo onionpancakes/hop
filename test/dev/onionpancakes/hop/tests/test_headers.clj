@@ -1,4 +1,4 @@
-(ns dev.onionpancakes.hop.test-headers
+(ns dev.onionpancakes.hop.tests.test-headers
   (:require [clojure.test :refer [deftest is are]]
             [dev.onionpancakes.hop.headers :as h]))
 

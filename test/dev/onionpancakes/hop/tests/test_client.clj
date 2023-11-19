@@ -1,4 +1,4 @@
-(ns dev.onionpancakes.hop.test-client
+(ns dev.onionpancakes.hop.tests.test-client
   (:require [dev.onionpancakes.hop.client :as client]
             [clojure.test :refer [deftest is]])
   (:import [java.net.http HttpClient$Redirect HttpClient$Version]))
