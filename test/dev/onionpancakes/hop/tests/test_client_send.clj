@@ -1,8 +1,8 @@
 (ns dev.onionpancakes.hop.tests.test-client-send
   (:require [dev.onionpancakes.hop.client :as client]
             [clojure.test :refer [deftest is use-fixtures]])
-  (:import [org.eclipse.jetty.util Callback]
-           [org.eclipse.jetty.server Handler$Abstract Response Server]))
+  (:import [org.eclipse.jetty.server Handler$Abstract Response Server]
+           [org.eclipse.jetty.util Callback]))
 
 ;; Server
 
