@@ -44,14 +44,16 @@
                             (= (.map (.headers obj)) expected))
     nil             {}
     {}              {}
-    {"Foo" nil}     {}
-    {"Foo" []}      {}
-    {:Foo [nil]}    {}
-    {"Foo" "Bar"}   {"Foo" ["Bar"]}
-    {"Foo" ["Bar"]} {"Foo" ["Bar"]}
-    {:Foo ["Bar"]}  {"Foo" ["Bar"]}
-    {"Foo" 0}       {"Foo" ["0"]}
-    {"Foo" [0]}     {"Foo" ["0"]}
+    {"foo" nil}     {}
+    {"foo" []}      {}
+    {:foo [nil]}    {}
+    {"foo" "bar"}   {"foo" ["bar"]}
+    {"foo" ["bar"]} {"foo" ["bar"]}
+    {:foo ["bar"]}  {"foo" ["bar"]}
+    {:foo ["bar"]}  {"foo" ["bar"]}
+    {:foo '("bar")} {"foo" ["bar"]}
+    {"foo" 0}       {"foo" ["0"]}
+    {"foo" [0]}     {"foo" ["0"]}
 
     ;; Mixed
     {:Foo ["Bar" "Baz"] :Qux "Mux"} {"Foo" ["Bar" "Baz"]

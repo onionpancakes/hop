@@ -57,10 +57,17 @@
 ;; Headers
 
 (extend-protocol HeaderValue
-  java.util.Collection
+  clojure.lang.Indexed
   (add-header-to-request-builder [this builder header-name]
-    (let [add-header-rf #(add-header-to-request-builder %2 % header-name)]
-      (reduce add-header-rf builder this)))
+    (loop [i 0 cnt (count this)]
+      (when (< i cnt)
+        (-> (nth this i)
+            (add-header-to-request-builder builder header-name))
+        (recur (inc i) cnt))))
+  clojure.lang.Seqable
+  (add-header-to-request-builder [this builder header-name]
+    (doseq [value this]
+      (add-header-to-request-builder value builder header-name)))
   String
   (add-header-to-request-builder [this builder header-name]
     (.header ^HttpRequest$Builder builder header-name this))
@@ -72,7 +79,8 @@
 
 (defn add-request-builder-header
   [builder k value]
-  (add-header-to-request-builder value builder (name k)))
+  (add-header-to-request-builder value builder (name k))
+  builder)
 
 (defn add-request-builder-headers
   ^HttpRequest$Builder
