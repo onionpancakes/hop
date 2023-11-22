@@ -12,6 +12,13 @@
    :ssl-session :previous-response])
 
 (deftype ResponseProxy [^HttpResponse response headers]
+  clojure.lang.ILookup
+  (valAt [this k]
+    (.get this k))
+  (valAt [this k not-found]
+    (if (.containsKey this k)
+      (.get this k)
+      not-found))
   java.util.Map
   (clear [this]
     (throw (UnsupportedOperationException.)))

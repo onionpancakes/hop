@@ -61,6 +61,9 @@
     :previous-response  nil
     :not-a-key          nil))
 
+(deftest test-response-proxy-lookup-not-found
+  (is (= (get example-response-proxy ::foo :not-found) :not-found)))
+
 (deftest test-response-proxy-clj
   (are [value expected] (= value expected)
     example-response-proxy                     example-response-map
