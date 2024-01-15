@@ -68,6 +68,12 @@
   (add-header-to-request-builder [this builder header-name]
     (doseq [value this]
       (add-header-to-request-builder value builder header-name)))
+  clojure.lang.Fn
+  (add-header-to-request-builder [this builder header-name]
+    (add-header-to-request-builder (this) builder header-name))
+  clojure.lang.IDeref
+  (add-header-to-request-builder [this builder header-name]
+    (add-header-to-request-builder (deref this) builder header-name))
   String
   (add-header-to-request-builder [this builder header-name]
     (.header ^HttpRequest$Builder builder header-name this))

@@ -37,6 +37,13 @@
     :post "POST"
     :head "HEAD"))
 
+(defn example-header-value-fn
+  []
+  "bar")
+
+(def example-header-value
+  "bar")
+
 (deftest test-request-headers
   (are [headers expected] (let [req {:uri     "http://example.com"
                                      :headers headers}
@@ -54,6 +61,11 @@
     {:foo '("bar")} {"foo" ["bar"]}
     {"foo" 0}       {"foo" ["0"]}
     {"foo" [0]}     {"foo" ["0"]}
+    
+    {"foo" example-header-value-fn}   {"foo" ["bar"]}
+    {"foo" #'example-header-value-fn} {"foo" ["bar"]}
+    {"foo" example-header-value} {"foo" ["bar"]}
+    {"foo" #'example-header-value} {"foo" ["bar"]}
 
     ;; Mixed
     {:Foo ["Bar" "Baz"] :Qux "Mux"} {"Foo" ["Bar" "Baz"]
