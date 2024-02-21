@@ -97,7 +97,7 @@
 
 (defn set-request-builder-from-map
   "Sets HttpRequest Builder."
-  ^HttpRequest$Builder
+  {:tag HttpRequest$Builder}
   [^HttpRequest$Builder builder m]
   (cond-> builder
     (contains? m :uri)             (.uri (uri (:uri m)))

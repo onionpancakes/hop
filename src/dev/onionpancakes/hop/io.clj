@@ -5,7 +5,9 @@
 
 ;; Decompress
 
-(defmulti ^java.io.InputStream decompress
+(defmulti decompress
+  "Given binary data and encoding, decompress it into an InputStream."
+  {:tag java.io.InputStream}
   (fn [data encoding] [(class data) (some-> encoding (lower-case))]))
 
 (defmethod decompress [(Class/forName "[B") "gzip"]

@@ -9,7 +9,7 @@
 ;; Client
 
 (defn set-client-builder-from-map
-  ^HttpClient$Builder
+  {:tag HttpClient$Builder}
   [^HttpClient$Builder builder m]
   (cond-> builder
     (contains? m :authenticator)    (.authenticator (:authenticator m))
@@ -24,8 +24,9 @@
     (contains? m :ssl-parameters)   (.sslParameters (:ssl-parameters m))
     (contains? m :version)          (.version (k/version (:version m) (:version m)))))
 
-(defn ^HttpClient client
+(defn client
   "Creates a HttpClient."
+  {:tag HttpClient}
   ([] (client nil))
   ([m]
    (-> (HttpClient/newBuilder)
@@ -55,8 +56,9 @@
   ([request body-handler]
    (send-with *client* request body-handler)))
 
-(defn ^CompletableFuture send-async-with
+(defn send-async-with
   "Send async request with given client, returning a CompletableFuture."
+  {:tag CompletableFuture}
   ([client request]
    (send-async-with client request :byte-array))
   ([^HttpClient client request body-handler]
@@ -64,8 +66,9 @@
        (sendAsync (request/request request) (response/body-handler body-handler))
        (thenApply response/response-proxy-function))))
 
-(defn ^CompletableFuture send-async
+(defn send-async
   "Send async request with default client, returning a CompletableFuture."
+  {:tag CompletableFuture}
   ([request]
    (send-async-with *client* request))
   ([request body-handler]
