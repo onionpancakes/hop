@@ -83,15 +83,15 @@
   nil
   (add-header-to-request-builder [_ builder _] builder))
 
-(defn add-request-builder-header
+(defn add-request-builder-header-kv
   [builder k value]
   (add-header-to-request-builder value builder (name k))
   builder)
 
 (defn add-request-builder-headers
-  ^HttpRequest$Builder
+  {:tag HttpRequest$Builder}
   [builder headers]
-  (reduce-kv add-request-builder-header builder headers))
+  (reduce-kv add-request-builder-header-kv builder headers))
 
 ;; Request
 
