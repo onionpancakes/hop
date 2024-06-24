@@ -10,28 +10,28 @@
            [java.util.function BiPredicate]))
 
 (def example-response-object
-  (reify HttpResponse
-    (body [this]
-      "Body")
-    (headers [this]
-      (HttpHeaders/of {"content-encoding" ["gzip"]
-                       "content-type"     ["text/plain;charset=utf-8"]}
-                      (reify java.util.function.BiPredicate
-                        (test [_ _ _] true))))
-    (previousResponse [this]
-      (Optional/ofNullable nil))
-    (request [this]
-      (.. (HttpRequest/newBuilder)
-          (uri (java.net.URI. "http://www.example.com"))
-          (build)))
-    (sslSession [this]
-      (Optional/ofNullable nil))
-    (statusCode [this]
-      (int 200))
-    (uri [this]
-      (java.net.URI. "http://www.example.com"))
-    (version [this]
-      HttpClient$Version/HTTP_1_1)))
+  (let [body     "Body"
+        headers  (HttpHeaders/of {"content-encoding" ["gzip"]
+                                  "content-type"     ["text/plain;charset=utf-8"]}
+                                 (reify java.util.function.BiPredicate
+                                   (test [_ _ _] true)))
+        prevResp (Optional/ofNullable nil)
+        req      (.. (HttpRequest/newBuilder)
+                     (uri (java.net.URI. "http://www.example.com"))
+                     (build))
+        ssl      (Optional/ofNullable nil)
+        status   (int 200)
+        uri      (java.net.URI. "http://www.example.com")
+        version  HttpClient$Version/HTTP_1_1]
+    (reify HttpResponse
+      (body [_] body)
+      (headers [_] headers)
+      (previousResponse [_] prevResp)
+      (request [_] req)
+      (sslSession [_] ssl)
+      (statusCode [_] status)
+      (uri [_] uri)
+      (version [_] version))))
 
 (def ^java.util.Map example-response-proxy
   (response/response-proxy example-response-object))
@@ -100,3 +100,17 @@
     (.keySet example-response-proxy)              (.keySet example-response-map)
     (.size example-response-proxy)                (.size example-response-map)
     (set (.values example-response-proxy))        (set (.values example-response-map))))
+
+(deftest test-response-proxy-http-response
+  (are [value expected] (identical? value expected)
+    (.body example-response-proxy)             (.body example-response-object)
+    (.headers example-response-proxy)          (.headers example-response-object)
+    (.previousResponse example-response-proxy) (.previousResponse example-response-object)
+    (.request example-response-proxy)          (.request example-response-object)
+    (.sslSession example-response-proxy)       (.sslSession example-response-object)
+    ;; Primitives can't be identical, use value test instead.
+    #_#_
+    (.statusCode example-response-proxy)       (.statusCode example-response-object)
+    (.uri example-response-proxy)              (.uri example-response-object)
+    (.version example-response-proxy)          (.version example-response-object))
+  (is (= (.statusCode example-response-proxy) (.statusCode example-response-object))))

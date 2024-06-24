@@ -10,6 +10,23 @@
 (declare response-proxy-function)
 
 (deftype ResponseProxy [^HttpResponse response headers]
+  HttpResponse
+  (body [_]
+    (.body response))
+  (headers [_]
+    (.headers response))
+  (previousResponse [_]
+    (.previousResponse response))
+  (request [_]
+    (.request response))
+  (sslSession [_]
+    (.sslSession response))
+  (statusCode [_]
+    (.statusCode response))
+  (uri [_]
+    (.uri response))
+  (version [_]
+    (.version response))
   clojure.lang.ILookup
   (valAt [this k]
     (.get this k))
