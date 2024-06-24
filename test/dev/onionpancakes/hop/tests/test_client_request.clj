@@ -1,16 +1,16 @@
-(ns dev.onionpancakes.hop.tests.test-request
-  (:require [dev.onionpancakes.hop.request :as request]
+(ns dev.onionpancakes.hop.tests.test-client-request
+  (:require [dev.onionpancakes.hop.client :as client]
             [clojure.test :refer [deftest are]])
   (:import [java.net.http HttpClient$Version]))
 
 (deftest test-uri
-  (are [x expected] (= (request/uri x) expected)
+  (are [x expected] (= (client/as-uri x) expected)
     "http://example.com"                 (java.net.URI. "http://example.com")
     (java.net.URL. "http://example.com") (java.net.URI. "http://example.com")
     (java.net.URI. "http://example.com") (java.net.URI. "http://example.com")))
 
 (deftest test-simple-get-request
-  (are [req uri] (let [obj (request/request req)]
+  (are [req uri] (let [obj (client/as-request req)]
                    (and (= (.method obj) "GET")
                         (= (.uri obj) uri)))
     "http://example.com"                 (java.net.URI. "http://example.com")
@@ -19,7 +19,7 @@
 
 (deftest test-request-uri
   (are [uri expected] (let [req {:uri uri}
-                            obj (request/request req)]
+                            obj (client/as-request req)]
                         (= (.uri obj) expected))
     "http://example.com"                 (java.net.URI. "http://example.com")
     (java.net.URL. "http://example.com") (java.net.URI. "http://example.com")
@@ -28,7 +28,7 @@
 (deftest test-request-method
   (are [method expected] (let [req {:uri    "http://example.com"
                                     :method method}
-                               obj (request/request req)]
+                               obj (client/as-request req)]
                            (= (.method obj) expected))
     :GET  "GET"
     :POST "POST"
@@ -47,7 +47,7 @@
 (deftest test-request-headers
   (are [headers expected] (let [req {:uri     "http://example.com"
                                      :headers headers}
-                                obj (request/request req)]
+                                obj (client/as-request req)]
                             (= (.map (.headers obj)) expected))
     nil             {}
     {}              {}
@@ -77,21 +77,21 @@
     (are [method body expected] (let [req {:uri    "http://example.com"
                                            :method method
                                            :body   body}
-                                      obj (request/request req)]
+                                      obj (client/as-request req)]
                                   (= (.. obj (bodyPublisher) (orElse nil)) expected))
       :GET nil (HttpRequest$BodyPublishers/noBody)))
 
 (deftest test-request-timeout
   (are [tout expected] (let [req {:uri     "http://example.com"
                                   :timeout tout}
-                             obj (request/request req)]
+                             obj (client/as-request req)]
                          (= (.. obj (timeout) (orElse nil)) expected))
     (java.time.Duration/ofMinutes 5) (java.time.Duration/ofMinutes 5)))
 
 (deftest test-request-version
   (are [ver expected] (let [req {:uri     "http://example.com"
                                  :version ver}
-                            obj (request/request req)]
+                            obj (client/as-request req)]
                         (= (.. obj (version) (orElse nil)) expected))
     :http                       HttpClient$Version/HTTP_1_1
     :http1.1                    HttpClient$Version/HTTP_1_1
@@ -102,7 +102,7 @@
 (deftest test-request-expect-continue
   (are [ec expected] (let [req {:uri             "http://example.com"
                                 :expect-continue ec}
-                            obj (request/request req)]
+                            obj (client/as-request req)]
                         (= (.. obj (expectContinue)) expected))
     false false
     true  true))

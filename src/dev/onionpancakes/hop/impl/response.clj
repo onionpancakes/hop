@@ -1,15 +1,13 @@
-(ns dev.onionpancakes.hop.response
-  (:require [dev.onionpancakes.hop.keywords :as k]
-            [dev.onionpancakes.hop.headers :as h]
-            [dev.onionpancakes.hop.parse :as p])
-  (:import [java.net.http HttpRequest HttpResponse]))
-
-(declare response-proxy-function)
+(ns dev.onionpancakes.hop.impl.response
+  (:require [dev.onionpancakes.hop.impl.parse :as impl.parse])
+  (:import [java.net.http HttpHeaders HttpResponse]))
 
 (def response-proxy-keys
   [:request :uri :version :status :headers :body
    :content-encoding :content-type :media-type :character-encoding
    :ssl-session :previous-response])
+
+(declare response-proxy-function)
 
 (deftype ResponseProxy [^HttpResponse response headers]
   clojure.lang.ILookup
@@ -52,12 +50,12 @@
       :media-type         (.. response
                               (headers)
                               (firstValue "content-type")
-                              (map p/parse-media-type-function)
+                              (map impl.parse/parse-media-type-function)
                               (orElse nil))
       :character-encoding (.. response
                               (headers)
                               (firstValue "content-type")
-                              (map p/parse-character-encoding-function)
+                              (map impl.parse/parse-character-encoding-function)
                               (orElse nil))
       :ssl-session        (.. response (sslSession) (orElse nil))
       :previous-response  (.. response
@@ -79,23 +77,19 @@
   (values [this]
     (into [] (keep #(.get this %)) response-proxy-keys)))
 
+(def headers-map-xf
+  (map (juxt key (comp vec val))))
+
+(defn headers-map
+  [^HttpHeaders headers]
+  (into {} headers-map-xf (.map headers)))
+
 (defn response-proxy
   [^HttpResponse response]
-  (let [headers (delay (h/to-map (.headers response)))]
-    (ResponseProxy. response headers)))
+  (ResponseProxy. response (delay (headers-map (.headers response)))))
 
 (def ^java.util.function.Function response-proxy-function
   "Function which returns response proxy from HttpResponse object."
   (reify java.util.function.Function
     (apply [_ response]
       (response-proxy response))))
-
-;; BodyHandler
-
-;; Note: Handle non-keyword body handlers in the future?
-;; e.g. Strings/Paths as BodyHandlers/ofFile ?
-
-(defn body-handler
-  "Return as BodyHandler."
-  [bh]
-  (k/body-handler bh bh))

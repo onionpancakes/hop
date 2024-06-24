@@ -1,6 +1,6 @@
-(ns dev.onionpancakes.hop.tests.test-parse
+(ns dev.onionpancakes.hop.tests.test-impl-parse
   (:require [clojure.test :refer [deftest are]]
-            [dev.onionpancakes.hop.parse :as p]))
+            [dev.onionpancakes.hop.impl.parse :as p]))
 
 (deftest test-parse-media-type
   (are [s expected] (= (p/parse-media-type s) expected)

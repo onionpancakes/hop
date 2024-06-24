@@ -1,10 +1,11 @@
-(ns dev.onionpancakes.hop.tests.test-response
+(ns dev.onionpancakes.hop.tests.test-impl-response
   (:require [clojure.test :refer [deftest is are]]
-            [dev.onionpancakes.hop.headers :as headers]
-            [dev.onionpancakes.hop.request :as request]
-            [dev.onionpancakes.hop.response :as response])
-  (:import [java.net.http HttpResponse HttpHeaders HttpRequest
-            HttpClient$Version]
+            [dev.onionpancakes.hop.impl.response :as response])
+  (:import [java.net.http
+            HttpClient$Version
+            HttpHeaders
+            HttpRequest
+            HttpResponse]
            [java.util Optional]
            [java.util.function BiPredicate]))
 
@@ -13,18 +14,22 @@
     (body [this]
       "Body")
     (headers [this]
-      (headers/from-map {"content-encoding" ["gzip"]
-                         "content-type"     ["text/plain;charset=utf-8"]}))
+      (HttpHeaders/of {"content-encoding" ["gzip"]
+                       "content-type"     ["text/plain;charset=utf-8"]}
+                      (reify java.util.function.BiPredicate
+                        (test [_ _ _] true))))
     (previousResponse [this]
       (Optional/ofNullable nil))
     (request [this]
-      (request/request "http://www.example.com"))
+      (.. (HttpRequest/newBuilder)
+          (uri (java.net.URI. "http://www.example.com"))
+          (build)))
     (sslSession [this]
       (Optional/ofNullable nil))
     (statusCode [this]
       (int 200))
     (uri [this]
-      (request/uri "http://www.example.com"))
+      (java.net.URI. "http://www.example.com"))
     (version [this]
       HttpClient$Version/HTTP_1_1)))
 
@@ -32,8 +37,10 @@
   (response/response-proxy example-response-object))
 
 (def ^java.util.Map example-response-map
-  {:request            (request/request "http://www.example.com")
-   :uri                (request/uri "http://www.example.com")
+  {:request            (.. (HttpRequest/newBuilder)
+                           (uri (java.net.URI. "http://www.example.com"))
+                           (build))
+   :uri                (java.net.URI. "http://www.example.com")
    :version            HttpClient$Version/HTTP_1_1
    :status             200
    :headers            {"content-encoding" ["gzip"]
@@ -46,8 +53,10 @@
 
 (deftest test-response-proxy-lookup
   (are [kw expected] (= (kw example-response-proxy) expected)
-    :request            (request/request "http://www.example.com")
-    :uri                (request/uri "http://www.example.com")
+    :request            (.. (HttpRequest/newBuilder)
+                            (uri (java.net.URI. "http://www.example.com"))
+                            (build))
+    :uri                (java.net.URI. "http://www.example.com")
     :version            HttpClient$Version/HTTP_1_1
     :status             200
     :headers            {"content-encoding" ["gzip"]
