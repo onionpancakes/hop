@@ -82,8 +82,8 @@
 
 ;; Send
 
-(def ^:dynamic *client*
-  "Delayed java.net.http.HttpClient used for send and send-async."
+(def default-client
+  "Default delayed java.net.http.HttpClient used for send and send-async."
   (delay (client {:connect-timeout  (java.time.Duration/ofMinutes 5)
                   :follow-redirects :normal})))
 
@@ -99,9 +99,9 @@
 (defn send
   "Send request with default client."
   ([request]
-   (send-with @*client* request))
+   (send-with @default-client request))
   ([request body-handler]
-   (send-with @*client* request body-handler)))
+   (send-with @default-client request body-handler)))
 
 (defn send-async-with
   "Send async request with given client, returning a CompletableFuture."
@@ -117,9 +117,9 @@
   "Send async request with default client, returning a CompletableFuture."
   {:tag CompletableFuture}
   ([request]
-   (send-async-with @*client* request))
+   (send-async-with @default-client request))
   ([request body-handler]
-   (send-async-with @*client* request body-handler)))
+   (send-async-with @default-client request body-handler)))
 
 ;; RequestURI
 
